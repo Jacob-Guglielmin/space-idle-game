@@ -1,0 +1,17 @@
+PLANETS: 
+minerals which spawn in MINING AREA and DRILL 
+some sort of liquid/fuel/oil from PUMP (gathers in pump tank automatically then taken, kind of like clash of clans)
+
+RESOURCES:
+- iron is used in most things
+- copper is used for pump upgrades
+- aluminum is used for drill upgrades
+- lead is used for mining tool upgrades
+- titanium is used for ship upgrades
+- fuel accumulates slowly over time in pump, once threshold is reached new planets can be reached
+
+UPGRADES:
+- pump upgrades (would upgrade both capacity and speed, eventually automatic gathering maybe at an interval)
+- mining tool upgrades (more return per click in manual mining area, maybe some powerups like clearing whole mine or bigger radius)
+- drill upgrades (just simply more stuff)
+- ship upgrades are very uncommon and increase planet selection options and better resources in planets available

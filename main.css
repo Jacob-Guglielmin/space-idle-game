@@ -1,0 +1,211 @@
+body {
+    margin: 0;
+    background-color: #000000;
+    overflow: hidden;
+    user-select: none;
+    color: white;
+    font-family: sans-serif;
+}
+
+#bgImage {
+    position: absolute;
+    z-index: -10;
+    top: 100vh;
+    left: 50vw;
+    transform: translate(-50%, -50%) rotate(0);
+    object-fit: cover;
+}
+
+#planet {
+    position: absolute;
+    top: 130vh;
+    left: 50vw;
+    transform: translate(-50%, -50%);
+    width: 70vw;
+    height: 70vw;
+    object-fit: fill;
+}
+
+#pumpImage {
+    position: absolute;
+    height: 20vh;
+    transform-origin: bottom center;
+    transform: rotate(-45deg);
+    z-index: -5;
+}
+
+#drillImage {
+    position: absolute;
+    height: 20vh;
+    transform-origin: bottom center;
+    transform: rotate(45deg);
+    z-index: -5;
+}
+
+#miningTable {
+    position: absolute;
+    z-index: 10;
+    left: 50vw;
+    top: 60vh;
+    transform: translate(-50%, 0);
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
+#miningTable td {
+    width: 7vh;
+    height: 7vh;
+    border: 5px solid white;
+}
+
+#topContainer {
+    position: absolute;
+    display: grid;
+    left: 0;
+    top: 0;
+    gap: 0;
+    width: 100vw;
+    height: 40vh;
+    grid-template-columns: 1.3fr 1fr 1.3fr;
+    grid-template-rows: 30vh 10vh;
+}
+
+#upgradesContainer {
+    grid-row: 1 / 3;
+    grid-column: 1;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+    border-bottom-right-radius: 15px;
+}
+
+#comms {
+    grid-row: 1 / 2;
+    grid-column: 2;
+    border-bottom: 2px solid white;
+    overflow: scroll;
+}
+
+#comms > p {
+    margin: 0 1vw 3vh 1vw;
+}
+#comms > p:first-child {
+    margin-top: 1vw;
+}
+
+#resourcesContainer {
+    grid-row: 1 / 3;
+    grid-column: 3;
+
+    border-left: 2px solid white;
+    border-bottom: 2px solid white;
+    border-bottom-left-radius: 15px;
+}
+
+.resourceTable p {
+    margin: 0;
+}
+.tableImageContainer {
+    width: 3vw;
+    height: 3vw;
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.tableImage {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+.tableText {
+    padding-left: 0.25vw;
+    font-size: 1.1vw;
+    color: white;
+}
+.tableAmount {
+    font-size: 1.2vw;
+    font-weight: bold;
+    color: white;
+}
+
+#planetInfoContainer {
+    position: absolute;
+    display: grid;
+    grid-template-columns: 1fr 5vw 1fr;
+    grid-template-rows: 1fr 5vw 1fr auto 1fr;
+    left: 3vh;
+    bottom: 3vh;
+    width: 8vw;
+    height: 8vw;
+    border: 2px solid white;
+    border-radius: 10px;
+}
+
+#planetIcon {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+    width: 5vw;
+    height: 5vw;
+    background-image: url(planet.png);
+    background-size: cover;
+}
+
+#planetName {
+    grid-column: 1 / 4;
+    grid-row: 4 / 5;
+    text-align: center;
+}
+
+#shipContainer {
+    position: absolute;
+    right: 3vh;
+    bottom: 3vh;
+    width: 8vw;
+    height: 8vw;
+    border: 2px solid white;
+    border-radius: 10px;
+}
+
+.tab {
+    display: grid;
+    grid-auto-columns: 1fr;
+    overflow: hidden;
+}
+.tab button {
+    line-height: 8vh;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    grid-row: 1;
+    background-color: transparent;
+    color: white;
+    border-bottom: 1px solid white;
+    border-left: 1px solid white;
+    height: 8vh;
+}
+.tab button:first-child {
+    border-left: none;
+}
+.tab button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
+}
+.tab button.active {
+    background-color: rgba(255, 255, 255, 0.7);
+    color: black;
+}
+.tabcontent {
+    display: none;
+    padding: 5px;
+    border-top: none;
+    color: white;
+    max-height: 32vh;
+    box-sizing: border-box;
+    overflow: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.tabcontent::-webkit-scrollbar {
+    display: none;
+}

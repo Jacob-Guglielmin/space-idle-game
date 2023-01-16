@@ -164,6 +164,31 @@ body {
     height: 8vw;
     border: 2px solid white;
     border-radius: 10px;
+    background-image: url(fuel.png);
+    background-repeat: repeat-x;
+    background-position-y: 4vw;
+    transition: background-position-y 1s;
+    animation: fuelAnim 5s linear infinite;
+    background-size: 8vw calc(8vw * 1.084);
+}
+#shipContainer::before {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: scale(0.5) translate(-50%, -50%);
+    content: url(rocket.svg);
+    filter: opacity(0);
+}
+#shipContainer.completeFuel::before {
+    filter: opacity(1);
+}
+@keyframes fuelAnim {
+    from {
+        background-position-x: 0;
+    }
+    to {
+        background-position-x: 8vw;
+    }
 }
 
 .tab {

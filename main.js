@@ -1,5 +1,5 @@
 "use strict";
-var bgImage = document.getElementById("bgImage"), drillImage = document.getElementById("drillImage"), pumpImage = document.getElementById("pumpImage"), planet = document.getElementById("planet"), miningTable = document.getElementById("miningTable"), comms = document.getElementById("comms"), planetName = document.getElementById("planetName"), resourceElements = {
+var bgImage = document.getElementById("bgImage"), drillImage = document.getElementById("drillImage"), pumpImage = document.getElementById("pumpImage"), planet = document.getElementById("planet"), miningTable = document.getElementById("miningTable"), comms = document.getElementById("comms"), planetName = document.getElementById("planetName"), shipContainer = document.getElementById("shipContainer"), resourceElements = {
     counts: {
         iron: document.getElementById("ironCount"),
         copper: document.getElementById("copperCount"),
@@ -26,14 +26,16 @@ var Game = (function () {
             titanium: 0,
             fuel: 0
         };
-        this.resourcesPs = {
+        this.mineralAbundance = {
             iron: 0,
             copper: 0,
             aluminum: 0,
             lead: 0,
-            titanium: 0,
-            fuel: 0
+            titanium: 0
         };
+        this.mineralsPs = 0;
+        this.fuelPs = 0;
+        this.fuelRequirement = 200;
         this.bgRotation = 0;
         this.miningGrid = [];
         this.commsTextElements = [];
@@ -61,7 +63,12 @@ var Game = (function () {
     }
     Game.prototype.Logic = function () {
         for (var resource in this.resources) {
-            this.resources[resource] += this.resourcesPs[resource] / this.fps;
+            if (resource != "fuel") {
+                this.resources[resource] += (this.mineralAbundance[resource] * this.mineralsPs) / this.fps;
+            }
+            else {
+                this.resources.fuel += this.fuelPs / this.fps;
+            }
         }
     };
     Game.prototype.Render = function () {
@@ -70,10 +77,19 @@ var Game = (function () {
         this.bgRotation += 0.015;
         bgImage.style.transform = "translate(-50%, -50%) rotate(" + this.bgRotation + "deg)";
         for (var resource in this.resources) {
-            if (resource == "fuel")
-                continue;
-            resourceElements.counts[resource].innerText = numFormat(this.resources[resource]);
-            resourceElements.perSecond[resource].innerText = numFormat(this.resourcesPs[resource]) + "/s";
+            if (resource == "fuel") {
+                shipContainer.style.backgroundPositionY = (1 - this.resources.fuel / this.fuelRequirement) * shipContainer.clientHeight - shipContainer.clientHeight * 0.084 + "px";
+                if (this.resources.fuel >= this.fuelRequirement) {
+                    shipContainer.classList.add("completeFuel");
+                }
+                else {
+                    shipContainer.classList.remove("completeFuel");
+                }
+            }
+            else {
+                resourceElements.counts[resource].innerText = numFormat(this.resources[resource]);
+                resourceElements.perSecond[resource].innerText = numFormat(this.mineralAbundance[resource] * this.mineralsPs) + "/s";
+            }
         }
         if (this.queuedCommsText.length > 0) {
             if (this.queuedCommsText[0].textElement == null) {
@@ -108,6 +124,20 @@ var Game = (function () {
                 }
             }
         }
+    };
+    Game.prototype.ChooseMineral = function (chances) {
+        var total = 0;
+        for (var mineral in chances) {
+            total += chances[mineral];
+        }
+        var rand = Math.random() * total;
+        for (var mineral in chances) {
+            rand -= chances[mineral];
+            if (rand < 0) {
+                return mineral;
+            }
+        }
+        return "iron";
     };
     Game.prototype.Loop = function () {
         this.Logic();

@@ -5,6 +5,7 @@ const bgImage = document.getElementById("bgImage") as HTMLImageElement,
     miningTable = document.getElementById("miningTable") as HTMLTableElement,
     comms = document.getElementById("comms") as HTMLDivElement,
     planetName = document.getElementById("planetName") as HTMLSpanElement,
+    shipContainer = document.getElementById("shipContainer") as HTMLDivElement,
     resourceElements = {
         counts: {
             iron: document.getElementById("ironCount") as HTMLParagraphElement,
@@ -22,12 +23,14 @@ const bgImage = document.getElementById("bgImage") as HTMLImageElement,
         }
     };
 
-interface ResourceObj<Type> {
+interface MineralObj<Type> {
     iron: Type;
     copper: Type;
     aluminum: Type;
     lead: Type;
     titanium: Type;
+}
+interface ResourceObj<Type> extends MineralObj<Type> {
     fuel: Type;
 }
 
@@ -42,14 +45,17 @@ class Game {
         titanium: 0,
         fuel: 0
     };
-    resourcesPs: ResourceObj<number> = {
+    mineralAbundance: MineralObj<number> = {
         iron: 0,
         copper: 0,
         aluminum: 0,
         lead: 0,
-        titanium: 0,
-        fuel: 0
+        titanium: 0
     };
+    mineralsPs: number = 0;
+    fuelPs: number = 0;
+
+    fuelRequirement = 200;
 
     bgRotation = 0;
 
@@ -90,7 +96,11 @@ class Game {
 
     Logic() {
         for (let resource in this.resources) {
-            this.resources[resource as keyof ResourceObj<number>] += this.resourcesPs[resource as keyof ResourceObj<number>] / this.fps;
+            if (resource != "fuel") {
+                this.resources[resource as keyof ResourceObj<number>] += (this.mineralAbundance[resource as keyof MineralObj<number>] * this.mineralsPs) / this.fps;
+            } else {
+                this.resources.fuel += this.fuelPs / this.fps;
+            }
         }
     }
 
@@ -110,10 +120,18 @@ class Game {
         // ==============================
 
         for (let resource in this.resources) {
-            if (resource == "fuel") continue;
+            if (resource == "fuel") {
+                shipContainer.style.backgroundPositionY = (1 - this.resources.fuel / this.fuelRequirement) * shipContainer.clientHeight - shipContainer.clientHeight * 0.084 + "px";
 
-            resourceElements.counts[resource as "iron" | "copper" | "aluminum" | "lead" | "titanium"].innerText = numFormat(this.resources[resource as keyof ResourceObj<number>]);
-            resourceElements.perSecond[resource as "iron" | "copper" | "aluminum" | "lead" | "titanium"].innerText = numFormat(this.resourcesPs[resource as keyof ResourceObj<number>]) + "/s";
+                if (this.resources.fuel >= this.fuelRequirement) {
+                    shipContainer.classList.add("completeFuel");
+                } else {
+                    shipContainer.classList.remove("completeFuel");
+                }
+            } else {
+                resourceElements.counts[resource as "iron" | "copper" | "aluminum" | "lead" | "titanium"].innerText = numFormat(this.resources[resource as keyof MineralObj<number>]);
+                resourceElements.perSecond[resource as "iron" | "copper" | "aluminum" | "lead" | "titanium"].innerText = numFormat(this.mineralAbundance[resource as keyof MineralObj<number>] * this.mineralsPs) + "/s";
+            }
         }
 
         // ==============================
@@ -156,6 +174,23 @@ class Game {
                 }
             }
         }
+    }
+
+    ChooseMineral(chances: MineralObj<number>): keyof MineralObj<number> {
+        let total = 0;
+        for (let mineral in chances) {
+            total += chances[mineral as keyof MineralObj<number>];
+        }
+
+        let rand = Math.random() * total;
+        for (let mineral in chances) {
+            rand -= chances[mineral as keyof MineralObj<number>];
+            if (rand < 0) {
+                return mineral as keyof MineralObj<number>;
+            }
+        }
+
+        return "iron";
     }
 
     Loop() {

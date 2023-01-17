@@ -75,17 +75,62 @@ class Game {
     currentPlanet: Planet;
 
     upgrades: Upgrade[] = [
-        new Upgrade(upgradeTables.drill, "🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100, copper: 1 }, () => {
+        // Ship Upgrades
+
+        // Pump Upgrades
+
+        // Tool Upgrades
+
+        new Upgrade(upgradeTables.tool, "🏓", "Rubber Handle", "For added stability.<br>[+0.1 minerals/click]", 0, { lead: 10, iron: 5 }, () => {
+            // per click += 0.1;
+            new CommsText("You have increased your mining power by 0.1 per click.");
+        }),
+        new Upgrade(upgradeTables.tool, "🧥", "Lead Coating", "A thin layer to shield some scratch damage.<br>[+3 minerals/click]", 0, { lead: 500, iron: 200 }, () => {
+            // per click += 3;
+            new CommsText("You have increased your mining power by 3 per click.");
+        }),
+        new Upgrade(upgradeTables.tool, "🏌️", "Stronger Strikes", "You gain a sense of power.<br>[+20.0 minerals/click]", 0, { lead: 5000, iron: 2500 }, () => {
+            // per click += 20;
+            new CommsText("You have increased your mining power by 20 per click.");
+        }),
+        new Upgrade(upgradeTables.tool, "🧲", "Magnetic Edge", "You seem to be losing track of less minerals now.<br>[+100.0 minerals/click]", 0, { lead: 35000, iron: 20000 }, () => {
+            // per click += 100;
+            new CommsText("You have increased your mining power by 100 per click.");
+        }),
+        new Upgrade(upgradeTables.tool, "⚡", "Laser Sight", "A built-in laser sight for improved precision.<br>[+600.0 minerals/click]", 0, { lead: 550000, iron: 250000 }, () => {
+            // per click += 600;
+            new CommsText("You have increased your mining power by 600 per click.");
+        }),
+        new Upgrade(upgradeTables.tool, "💻", "Magic Chip", "A smart microprocessor that tracks tool usage and suggests maintenance.<br>[+2000 minerals/click]", 0, { lead: 10000000, iron: 4000000 }, () => {
+            // per click += 2000;
+            new CommsText("You have increased your mining power by 2000 per click.");
+        }),
+
+        // Drill Upgrades
+
+        new Upgrade(upgradeTables.drill, "🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { aluminum: 100, iron: 20 }, () => {
             this.mineralsPs += 1;
             new CommsText("You have increased your mining rate by 1 per second.");
         }),
-        new Upgrade(upgradeTables.drill, "🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000, copper: 25 }, () => {
+        new Upgrade(upgradeTables.drill, "🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { aluminum: 2000, iron: 800 }, () => {
             this.mineralsPs += 10;
             new CommsText("You have increased your mining rate by 10 per second.");
         }),
-        new Upgrade(upgradeTables.drill, "🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500, copper: 150, aluminum: 20 }, () => {
-            this.mineralsPs += 50;
+        new Upgrade(upgradeTables.drill, "🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+30.0 minerals/sec]", 0, { aluminum: 7500, iron: 3000 }, () => {
+            this.mineralsPs += 30;
             new CommsText("You have increased your mining rate by 50 per second.");
+        }),
+        new Upgrade(upgradeTables.drill, "🌡", "Thermal Dynamics", "This cooling system allows the drill to safely run at higher powers.<br>[+95.0 minerals/sec]", 0, { aluminum: 40000, iron: 17500 }, () => {
+            this.mineralsPs += 95;
+            new CommsText("You have increased your mining rate by 95 per second.");
+        }),
+        new Upgrade(upgradeTables.drill, "📡", "Pressure Sensors", "Automatically detects and adjusts for different rock densities.<br>[+250 minerals/sec]", 0, { aluminum: 750000, iron: 400000 }, () => {
+            this.mineralsPs += 250;
+            new CommsText("You have increased your mining rate by 250 per second.");
+        }),
+        new Upgrade(upgradeTables.drill, "🌪️", "High-Torque Motor", "A spin of unprecedented speeds.<br>[+800 minerals/sec]", 0, { aluminum: 6000000, iron: 2000000 }, () => {
+            this.mineralsPs += 800;
+            new CommsText("You have increased your mining rate by 800 per second.");
         })
     ];
 

@@ -142,7 +142,7 @@ class Game {
 
         for (let resource in this.resources) {
             if (resource == "fuel") {
-                shipContainer.style.backgroundPositionY = (1 - this.resources.fuel / this.fuelRequirement) * shipContainer.clientHeight - shipContainer.clientHeight * 0.084 + "px";
+                shipContainer.style.backgroundPositionY = Math.max(0, (1 - this.resources.fuel / this.fuelRequirement) * shipContainer.clientHeight) - shipContainer.clientHeight * 0.084 + "px";
 
                 if (this.resources.fuel >= this.fuelRequirement) {
                     shipContainer.classList.add("completeFuel");

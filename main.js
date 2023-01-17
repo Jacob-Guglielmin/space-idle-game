@@ -339,22 +339,6 @@ function upgradesToTable(upgradeArray, specifiedTable) {
     }
     specifiedTable.innerHTML = table;
 }
-function assignListenersToTables() {
-    const rows = document.querySelectorAll("#drillUpgradeTable tr");
-    for (let i = 0; i < rows.length; i++) {
-        rows[i].addEventListener("click", function () {
-            if (i === 0) {
-                game.drillUpgrade1.Buy();
-            }
-            else if (i === 1) {
-                game.drillUpgrade2.Buy();
-            }
-            else if (i === 2) {
-                game.drillUpgrade3.Buy();
-            }
-        });
-    }
-}
 function generatePlanet() {
     let planetName = genPlanetName();
     const resources = ["iron", "copper", "aluminum", "lead", "titanium"];

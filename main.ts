@@ -1,3 +1,14 @@
+interface MineralObj<Type> {
+    iron: Type;
+    copper: Type;
+    aluminum: Type;
+    lead: Type;
+    titanium: Type;
+}
+interface ResourceObj<Type> extends MineralObj<Type> {
+    fuel: Type;
+}
+
 const bgImage = document.getElementById("bgImage") as HTMLImageElement,
     drillImage = document.getElementById("drillImage") as HTMLImageElement,
     pumpImage = document.getElementById("pumpImage") as HTMLImageElement,
@@ -6,7 +17,7 @@ const bgImage = document.getElementById("bgImage") as HTMLImageElement,
     comms = document.getElementById("comms") as HTMLDivElement,
     planetName = document.getElementById("planetName") as HTMLSpanElement,
     shipContainer = document.getElementById("shipContainer") as HTMLDivElement,
-    resourceElements = {
+    resourceElements: { counts: MineralObj<HTMLParagraphElement>; perSecond: MineralObj<HTMLParagraphElement> } = {
         counts: {
             iron: document.getElementById("ironCount") as HTMLParagraphElement,
             copper: document.getElementById("copperCount") as HTMLParagraphElement,
@@ -22,17 +33,6 @@ const bgImage = document.getElementById("bgImage") as HTMLImageElement,
             titanium: document.getElementById("titaniumPs") as HTMLParagraphElement
         }
     };
-
-interface MineralObj<Type> {
-    iron: Type;
-    copper: Type;
-    aluminum: Type;
-    lead: Type;
-    titanium: Type;
-}
-interface ResourceObj<Type> extends MineralObj<Type> {
-    fuel: Type;
-}
 
 class Game {
     readonly fps = 30;
@@ -129,8 +129,8 @@ class Game {
                     shipContainer.classList.remove("completeFuel");
                 }
             } else {
-                resourceElements.counts[resource as "iron" | "copper" | "aluminum" | "lead" | "titanium"].innerText = numFormat(this.resources[resource as keyof MineralObj<number>]);
-                resourceElements.perSecond[resource as "iron" | "copper" | "aluminum" | "lead" | "titanium"].innerText = numFormat(this.mineralAbundance[resource as keyof MineralObj<number>] * this.mineralsPs) + "/s";
+                resourceElements.counts[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.resources[resource as keyof MineralObj<number>]);
+                resourceElements.perSecond[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.mineralAbundance[resource as keyof MineralObj<number>] * this.mineralsPs) + "/s";
             }
         }
 

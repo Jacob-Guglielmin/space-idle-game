@@ -69,6 +69,27 @@ class Game {
 
     currentPlanetName = genPlanetName();
 
+    drillUpgrade1_effect = () => {
+        this.mineralsPs += 1;
+        new CommsText("You have increased your mining rate by 1 per second.")
+    };
+    drillUpgrade1: Upgrade = new Upgrade("🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100 }, this.drillUpgrade1_effect);
+
+    drillUpgrade2_effect = () => {
+        this.mineralsPs += 1;
+        new CommsText("You have increased your mining rate by 10 per second.")
+    };
+    drillUpgrade2: Upgrade = new Upgrade("🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000 }, this.drillUpgrade1_effect);
+
+    drillUpgrade3_effect = () => {
+        this.mineralsPs += 1;
+        new CommsText("You have increased your mining rate by 50 per second.")
+    };
+    drillUpgrade3: Upgrade = new Upgrade("🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500 }, this.drillUpgrade1_effect);
+
+    // list of upgrades
+    drillUpgrades: Upgrade[] = [this.drillUpgrade1, this.drillUpgrade2, this.drillUpgrade3];
+
     constructor() {
         planetName.innerText = this.currentPlanetName;
 
@@ -200,6 +221,9 @@ class Game {
     }
 
     Start() {
+        upgradesToTable(this.drillUpgrades, document.getElementById("drillUpgradeTable") as HTMLTableElement);
+        assignListenersToTables()
+
         this.Render();
 
         setInterval(this.Loop.bind(this), 1000 / this.fps);
@@ -207,8 +231,10 @@ class Game {
 }
 
 class Upgrade {
+    icon: string;
     name: string;
     desc: string;
+    owned: number = 0;
     costs: ResourceObj<number> = {
         iron: 0,
         copper: 0,
@@ -217,13 +243,25 @@ class Upgrade {
         titanium: 0,
         fuel: 0
     };
+    effect: () => void
 
-    constructor(name: string, desc: string, costs: Partial<ResourceObj<number>>) {
+    constructor(icon: string, name: string, desc: string, owned: number, costs: Partial<ResourceObj<number>>, effect: () => void) {
+        this.icon = icon;
         this.name = name;
         this.desc = desc;
+        this.owned = owned;
         for (let resource in costs) {
             this.costs[resource as keyof ResourceObj<number>] = costs[resource as keyof ResourceObj<number>] as number;
         }
+        this.effect = effect;
+    }
+
+    Buy() {
+        for (let resource in this.costs) {
+            game.resources[resource as keyof ResourceObj<number>] -= this.costs[resource as keyof ResourceObj<number>];
+        }
+        this.owned++;
+        this.effect();
     }
 }
 
@@ -346,6 +384,37 @@ function handleResize() {
     pumpImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - pumpImage.clientHeight + 0.01 * planetRadius + "px";
 }
 
+function upgradesToTable(upgradeArray: Upgrade[], specifiedTable: HTMLTableElement) {
+    let table = "";
+    for (let i = 0; i < upgradeArray.length; i++) {
+        let upgrade = upgradeArray[i];
+        table += "<tr>";
+        table += `<td class="upgradeTableIcon">${upgrade.icon}</td>`;
+        table += `<td class="upgradeTableName">${upgrade.name}</td>`;
+        table += `<td class="upgradeTableDesc">${upgrade.desc}</td>`;
+        table += `<td class="upgradeTableCost">${Object.keys(upgrade.costs)[0]}: ${upgrade.costs[(Object.keys(upgrade.costs)[0]) as keyof ResourceObj<number>]}</td>`;
+        table += `<td class="upgradeTableOwned">x${upgrade.owned}</td>`;
+        table += "</tr>";
+    }
+    specifiedTable.innerHTML = table;
+}
+
+// Upgrade listeners
+function assignListenersToTables() {
+    const rows = document.querySelectorAll("#drillUpgradeTable tr");
+    for (let i = 0; i < rows.length; i++) {
+    rows[i].addEventListener("click", function() {
+        if (i === 0) {
+            game.drillUpgrade1.Buy();
+        } else if (i === 1) {
+            game.drillUpgrade2.Buy();
+        } else if (i === 2) {
+            game.drillUpgrade3.Buy();
+        }
+    });
+}}
+
+
 // Register event listeners for page
 window.addEventListener("resize", handleResize);
 
@@ -354,3 +423,4 @@ handleResize();
 const game = new Game();
 
 game.Start();
+

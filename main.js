@@ -43,6 +43,22 @@ class Game {
         this.commsBlinkShown = false;
         this.commsBlinkTimer = 15;
         this.currentPlanetName = genPlanetName();
+        this.drillUpgrade1_effect = () => {
+            this.mineralsPs += 1;
+            new CommsText("You have increased your mining rate by 1 per second.");
+        };
+        this.drillUpgrade1 = new Upgrade("🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100 }, this.drillUpgrade1_effect);
+        this.drillUpgrade2_effect = () => {
+            this.mineralsPs += 1;
+            new CommsText("You have increased your mining rate by 10 per second.");
+        };
+        this.drillUpgrade2 = new Upgrade("🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000 }, this.drillUpgrade1_effect);
+        this.drillUpgrade3_effect = () => {
+            this.mineralsPs += 1;
+            new CommsText("You have increased your mining rate by 50 per second.");
+        };
+        this.drillUpgrade3 = new Upgrade("🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500 }, this.drillUpgrade1_effect);
+        this.drillUpgrades = [this.drillUpgrade1, this.drillUpgrade2, this.drillUpgrade3];
         planetName.innerText = this.currentPlanetName;
         for (let i = 0; i < 4; i++) {
             let thisRow = miningTable.insertRow();
@@ -144,12 +160,15 @@ class Game {
         this.Render();
     }
     Start() {
+        upgradesToTable(this.drillUpgrades, document.getElementById("drillUpgradeTable"));
+        assignListenersToTables();
         this.Render();
         setInterval(this.Loop.bind(this), 1000 / this.fps);
     }
 }
 class Upgrade {
-    constructor(name, desc, costs) {
+    constructor(icon, name, desc, owned, costs, effect) {
+        this.owned = 0;
         this.costs = {
             iron: 0,
             copper: 0,
@@ -158,11 +177,21 @@ class Upgrade {
             titanium: 0,
             fuel: 0
         };
+        this.icon = icon;
         this.name = name;
         this.desc = desc;
+        this.owned = owned;
         for (let resource in costs) {
             this.costs[resource] = costs[resource];
         }
+        this.effect = effect;
+    }
+    Buy() {
+        for (let resource in this.costs) {
+            game.resources[resource] -= this.costs[resource];
+        }
+        this.owned++;
+        this.effect();
     }
 }
 class CommsText {
@@ -258,6 +287,36 @@ function handleResize() {
     drillImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - drillImage.clientHeight - 0.32 * (drillImage.clientWidth / Math.SQRT2) + 0.01 * planetRadius + "px";
     pumpImage.style.left = planetPosMiddle[0] - planetRadius / Math.SQRT2 - pumpImage.clientWidth / 2 + 0.01 * planetRadius + "px";
     pumpImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - pumpImage.clientHeight + 0.01 * planetRadius + "px";
+}
+function upgradesToTable(upgradeArray, specifiedTable) {
+    let table = "";
+    for (let i = 0; i < upgradeArray.length; i++) {
+        let upgrade = upgradeArray[i];
+        table += "<tr>";
+        table += `<td class="upgradeTableIcon">${upgrade.icon}</td>`;
+        table += `<td class="upgradeTableName">${upgrade.name}</td>`;
+        table += `<td class="upgradeTableDesc">${upgrade.desc}</td>`;
+        table += `<td class="upgradeTableCost">${Object.keys(upgrade.costs)[0]}: ${upgrade.costs[(Object.keys(upgrade.costs)[0])]}</td>`;
+        table += `<td class="upgradeTableOwned">x${upgrade.owned}</td>`;
+        table += "</tr>";
+    }
+    specifiedTable.innerHTML = table;
+}
+function assignListenersToTables() {
+    const rows = document.querySelectorAll("#drillUpgradeTable tr");
+    for (let i = 0; i < rows.length; i++) {
+        rows[i].addEventListener("click", function () {
+            if (i === 0) {
+                game.drillUpgrade1.Buy();
+            }
+            else if (i === 1) {
+                game.drillUpgrade2.Buy();
+            }
+            else if (i === 2) {
+                game.drillUpgrade3.Buy();
+            }
+        });
+    }
 }
 window.addEventListener("resize", handleResize);
 handleResize();

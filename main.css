@@ -221,11 +221,11 @@ body {
     border-left: none;
 }
 .tab button:hover {
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: #ffffff30;
     color: white;
 }
 .tab button.active {
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: #ffffffdd;
     color: black;
 }
 .tabcontent {
@@ -250,7 +250,7 @@ body {
     border-bottom: 1px solid white;
 }
 #drillUpgradeTable tr:hover {
-    color: silver;
+    background-color: #ffffff30;
 }
 #drillUpgradeTable td {
     padding-top: 2vh;

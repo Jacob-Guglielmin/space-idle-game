@@ -17,6 +17,12 @@ const bgImage = document.getElementById("bgImage") as HTMLImageElement,
     comms = document.getElementById("comms") as HTMLDivElement,
     planetName = document.getElementById("planetName") as HTMLSpanElement,
     shipContainer = document.getElementById("shipContainer") as HTMLDivElement,
+    upgradeTableElements: { [key: string]: HTMLTableElement } = {
+        ship: document.getElementById("shipUpgradeTable") as HTMLTableElement,
+        pump: document.getElementById("pumpUpgradeTable") as HTMLTableElement,
+        tool: document.getElementById("toolUpgradeTable") as HTMLTableElement,
+        drill: document.getElementById("drillUpgradeTable") as HTMLTableElement
+    },
     resourceElements: { counts: MineralObj<HTMLParagraphElement>; perSecond: MineralObj<HTMLParagraphElement> } = {
         counts: {
             iron: document.getElementById("ironCount") as HTMLParagraphElement,
@@ -73,19 +79,19 @@ class Game {
         this.mineralsPs += 1;
         new CommsText("You have increased your mining rate by 1 per second.");
     };
-    drillUpgrade1: Upgrade = new Upgrade("🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100, copper: 1 }, this.drillUpgrade1_effect);
+    drillUpgrade1: Upgrade = new Upgrade("drill", "🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100, copper: 1 }, this.drillUpgrade1_effect);
 
     drillUpgrade2_effect = () => {
         this.mineralsPs += 10;
         new CommsText("You have increased your mining rate by 10 per second.");
     };
-    drillUpgrade2: Upgrade = new Upgrade("🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000, copper: 25 }, this.drillUpgrade2_effect);
+    drillUpgrade2: Upgrade = new Upgrade("drill", "🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000, copper: 25 }, this.drillUpgrade2_effect);
 
     drillUpgrade3_effect = () => {
         this.mineralsPs += 50;
         new CommsText("You have increased your mining rate by 50 per second.");
     };
-    drillUpgrade3: Upgrade = new Upgrade("🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500, copper: 150, aluminum: 20 }, this.drillUpgrade3_effect);
+    drillUpgrade3: Upgrade = new Upgrade("drill", "🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500, copper: 150, aluminum: 20 }, this.drillUpgrade3_effect);
 
     // list of upgrades
     drillUpgrades: Upgrade[] = [this.drillUpgrade1, this.drillUpgrade2, this.drillUpgrade3];
@@ -151,7 +157,7 @@ class Game {
                 }
             } else {
                 resourceElements.counts[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.resources[resource as keyof MineralObj<number>]);
-                resourceElements.perSecond[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.mineralAbundance[resource as keyof MineralObj<number>] * this.mineralsPs) + "/s";
+                resourceElements.perSecond[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.mineralAbundance[resource as keyof MineralObj<number>] * this.mineralsPs, true) + "/s";
             }
         }
 
@@ -221,9 +227,6 @@ class Game {
     }
 
     Start() {
-        upgradesToTable(this.drillUpgrades, document.getElementById("drillUpgradeTable") as HTMLTableElement);
-        assignListenersToTables();
-
         this.Render();
 
         setInterval(this.Loop.bind(this), 1000 / this.fps);
@@ -245,7 +248,7 @@ class Upgrade {
     };
     effect: () => void;
 
-    constructor(icon: string, name: string, desc: string, owned: number, costs: Partial<ResourceObj<number>>, effect: () => void) {
+    constructor(type: "ship" | "pump" | "tool" | "drill", icon: string, name: string, desc: string, owned: number, costs: Partial<ResourceObj<number>>, effect: () => void) {
         this.icon = icon;
         this.name = name;
         this.desc = desc;
@@ -254,9 +257,62 @@ class Upgrade {
             this.costs[resource as keyof ResourceObj<number>] = costs[resource as keyof ResourceObj<number>] as number;
         }
         this.effect = effect;
+
+        let table: HTMLTableElement;
+
+        if (type == "ship") {
+            table = upgradeTableElements.ship;
+        } else if (type == "pump") {
+            table = upgradeTableElements.pump;
+        } else if (type == "tool") {
+            table = upgradeTableElements.tool;
+        } else if (type == "drill") {
+            table = upgradeTableElements.drill;
+        } else {
+            throw new Error("Invalid upgrade type");
+        }
+
+        let upgradeRow = table.insertRow();
+
+        let iconCell = upgradeRow.insertCell(),
+            nameCell = upgradeRow.insertCell(),
+            descCell = upgradeRow.insertCell(),
+            costCell = upgradeRow.insertCell(),
+            ownedCell = upgradeRow.insertCell();
+
+        iconCell.classList.add("upgradeTableIcon");
+        nameCell.classList.add("upgradeTableName");
+        descCell.classList.add("upgradeTableDesc");
+        costCell.classList.add("upgradeTableCost");
+        ownedCell.classList.add("upgradeTableOwned");
+
+        iconCell.innerHTML = this.icon;
+        nameCell.innerHTML = this.name;
+        descCell.innerHTML = this.desc;
+        ownedCell.innerHTML = "x" + this.owned;
+
+        let needLineBreak = false;
+        for (let resource in this.costs) {
+            if (this.costs[resource as keyof ResourceObj<number>] !== 0) {
+                if (needLineBreak) {
+                    costCell.innerHTML += "<br>";
+                } else {
+                    needLineBreak = true;
+                }
+                costCell.innerHTML += resource + ": " + numFormat(this.costs[resource as keyof ResourceObj<number>]);
+            }
+        }
+
+        upgradeRow.addEventListener("click", this.Buy.bind(this));
     }
 
     Buy() {
+        for (let resource in this.costs) {
+            if (this.costs[resource as keyof ResourceObj<number>] > game.resources[resource as keyof ResourceObj<number>]) {
+                return;
+            }
+        }
+
         for (let resource in this.costs) {
             game.resources[resource as keyof ResourceObj<number>] -= this.costs[resource as keyof ResourceObj<number>];
         }
@@ -327,8 +383,10 @@ class CommsText {
     }
 }
 
-function numFormat(num: number): string {
-    if (num < 1) return "0";
+function numFormat(num: number, allowSubOne = false): string {
+    if (num == 0 || (!allowSubOne && num < 1)) return "0";
+    if (num < 10 && allowSubOne) return parseFloat(num.toFixed(2)).toString();
+    if (num < 50 && allowSubOne) return parseFloat(num.toFixed(1)).toString();
     let magnitude = Math.floor(Math.log10(Math.floor(num)) / 3);
     let suffix = ["", "K", "M", "B", "T", "q", "Q", "s", "S", "O", "N", "D"][magnitude];
     return (
@@ -382,45 +440,6 @@ function handleResize() {
 
     pumpImage.style.left = planetPosMiddle[0] - planetRadius / Math.SQRT2 - pumpImage.clientWidth / 2 + 0.01 * planetRadius + "px";
     pumpImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - pumpImage.clientHeight + 0.01 * planetRadius + "px";
-}
-
-function upgradesToTable(upgradeArray: Upgrade[], specifiedTable: HTMLTableElement) {
-    let table = "";
-    for (let i = 0; i < upgradeArray.length; i++) {
-        let upgrade = upgradeArray[i];
-        table += "<tr>";
-        table += `<td class="upgradeTableIcon">${upgrade.icon}</td>`;
-        table += `<td class="upgradeTableName">${upgrade.name}</td>`;
-        table += `<td class="upgradeTableDesc">${upgrade.desc}</td>`;
-
-        table += `<td class="upgradeTableCost">`;
-        for (let [key, value] of Object.entries(upgrade.costs)) {
-            if (value !== 0) {
-                table += `${key}: ${value} <br>`;
-            }
-        }
-        table += "</td>";
-
-        table += `<td class="upgradeTableOwned">x${upgrade.owned}</td>`;
-        table += "</tr>";
-    }
-    specifiedTable.innerHTML = table;
-}
-
-// Upgrade listeners
-function assignListenersToTables() {
-    const rows = document.querySelectorAll("#drillUpgradeTable tr");
-    for (let i = 0; i < rows.length; i++) {
-        rows[i].addEventListener("click", function () {
-            if (i === 0) {
-                game.drillUpgrade1.Buy();
-            } else if (i === 1) {
-                game.drillUpgrade2.Buy();
-            } else if (i === 2) {
-                game.drillUpgrade3.Buy();
-            }
-        });
-    }
 }
 
 // Register event listeners for page

@@ -107,7 +107,7 @@ class Game {
             }
             else {
                 resourceElements.counts[resource].innerText = numFormat(this.resources[resource]);
-                resourceElements.perSecond[resource].innerText = numFormat(this.mineralAbundance[resource] * this.mineralsPs, true) + "/s";
+                resourceElements.perSecond[resource].innerText = numFormat(this.mineralAbundance[resource] * this.mineralsPs) + "/s";
             }
         }
         if (this.queuedCommsText.length > 0) {
@@ -219,11 +219,6 @@ class Upgrade {
     }
     Buy() {
         for (let resource in this.costs) {
-            if (this.costs[resource] > game.resources[resource]) {
-                return;
-            }
-        }
-        for (let resource in this.costs) {
             game.resources[resource] -= this.costs[resource];
         }
         this.owned++;
@@ -278,13 +273,9 @@ class CommsText {
         }
     }
 }
-function numFormat(num, allowSubOne = false) {
-    if (num == 0 || (!allowSubOne && num < 1))
+function numFormat(num) {
+    if (num < 1)
         return "0";
-    if (num < 10 && allowSubOne)
-        return parseFloat(num.toFixed(2)).toString();
-    if (num < 50 && allowSubOne)
-        return parseFloat(num.toFixed(1)).toString();
     let magnitude = Math.floor(Math.log10(Math.floor(num)) / 3);
     let suffix = ["", "K", "M", "B", "T", "q", "Q", "s", "S", "O", "N", "D"][magnitude];
     return (parseFloat((Math.floor(num) / Math.pow(10, magnitude * 3)).toFixed(2))
@@ -327,6 +318,56 @@ function handleResize() {
     drillImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - drillImage.clientHeight - 0.32 * (drillImage.clientWidth / Math.SQRT2) + 0.01 * planetRadius + "px";
     pumpImage.style.left = planetPosMiddle[0] - planetRadius / Math.SQRT2 - pumpImage.clientWidth / 2 + 0.01 * planetRadius + "px";
     pumpImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - pumpImage.clientHeight + 0.01 * planetRadius + "px";
+}
+function upgradesToTable(upgradeArray, specifiedTable) {
+    let table = "";
+    for (let i = 0; i < upgradeArray.length; i++) {
+        let upgrade = upgradeArray[i];
+        table += "<tr>";
+        table += `<td class="upgradeTableIcon">${upgrade.icon}</td>`;
+        table += `<td class="upgradeTableName">${upgrade.name}</td>`;
+        table += `<td class="upgradeTableDesc">${upgrade.desc}</td>`;
+        table += `<td class="upgradeTableCost">`;
+        for (let [key, value] of Object.entries(upgrade.costs)) {
+            if (value !== 0) {
+                table += `${key}: ${value} <br>`;
+            }
+        }
+        table += "</td>";
+        table += `<td class="upgradeTableOwned">x${upgrade.owned}</td>`;
+        table += "</tr>";
+    }
+    specifiedTable.innerHTML = table;
+}
+function assignListenersToTables() {
+    const rows = document.querySelectorAll("#drillUpgradeTable tr");
+    for (let i = 0; i < rows.length; i++) {
+        rows[i].addEventListener("click", function () {
+            if (i === 0) {
+                game.drillUpgrade1.Buy();
+            }
+            else if (i === 1) {
+                game.drillUpgrade2.Buy();
+            }
+            else if (i === 2) {
+                game.drillUpgrade3.Buy();
+            }
+        });
+    }
+}
+function generatePlanet() {
+    let planetName = genPlanetName();
+    const resources = ["iron", "copper", "aluminum", "lead", "titanium"];
+    let planetLootTable = {};
+    const abundant = resources[Math.floor(Math.random() * resources.length)];
+    planetLootTable[abundant] = Math.random() * 0.3 + 0.6;
+    let remaining = 1 - planetLootTable[abundant];
+    resources.forEach((resource) => {
+        if (resource !== abundant) {
+            planetLootTable[resource] = (Math.random() * remaining) / (resources.length - 1);
+            remaining -= planetLootTable[resource];
+        }
+    });
 }
 window.addEventListener("resize", handleResize);
 handleResize();

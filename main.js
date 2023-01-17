@@ -20,6 +20,11 @@ const bgImage = document.getElementById("bgImage"), drillImage = document.getEle
         titanium: document.getElementById("titaniumPs")
     }
 };
+const planetNameSegments = {
+    start: ["Zubr", "Avi", "Heso", "Hal", "Hea", "Pio", "Druc", "Llaz", "Fenr", "Xant", "Kryst", "Nym", "Zephyr", "Eldr", "Myst", "Vent", "Gor", "Kel", "Tyr", "Gryf", "Jyn", "Kron", "Vyr", "Ryn", "Lyr", "Cyr", "Syr", "Hyr", "Myyr", "Fyr", "Vyrn", "Cycl", "Kyn", "Jyr", "Wyr", "Zyr", "Ilin", "Alin", "Ethon", "Zyx", "Pix", "Zelr", "Abr", "Havir", "Hil", "Heli", "Pyr", "Dryl", "Lysz", "Fyrn", "Xar", "Kryl", "Nyl", "Zelph", "Eldyn", "Myzt", "Vyrn", "Gyr", "Kyl", "Tyl", "Gryl", "Jyl", "Kryl"],
+    middle: ["iun", "arut", "sie", "nad", "wei", "vis", "itov", "eth", "ora", "ion", "aria", "ael", "aril", "ith", "osar", "ath", "ion", "iam", "iria", "iael", "ina", "orio", "oria", "ila", "ira", "ixu", "ily", "axy", "axi", "axo"],
+    end: ["ia", "a", "o", "e", "u", "i", "is", "es", "us", "os", "ys", "ysus", "ax", "ion", "el", "ar", "er", "ir", "yr", "or", "ur", "esir", "ios", "ius", "ois", "ysa", "ora", "ese", "asi", "asi", "oxi", "oxa", "oxo", "axin", "arin", "elia", "eal", "ifia", "th", "arn", "ry"]
+};
 class Game {
     constructor() {
         this.fps = 30;
@@ -31,13 +36,6 @@ class Game {
             titanium: 0,
             fuel: 0
         };
-        this.mineralAbundance = {
-            iron: 0,
-            copper: 0,
-            aluminum: 0,
-            lead: 0,
-            titanium: 0
-        };
         this.mineralsPs = 0;
         this.fuelPs = 0;
         this.fuelRequirement = 200;
@@ -47,7 +45,6 @@ class Game {
         this.queuedCommsText = [];
         this.commsBlinkShown = false;
         this.commsBlinkTimer = 15;
-        this.currentPlanetName = genPlanetName();
         this.upgrades = [
             new Upgrade(upgradeTables.drill, "🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100, copper: 1 }, () => {
                 this.mineralsPs += 1;
@@ -62,7 +59,7 @@ class Game {
                 new CommsText("You have increased your mining rate by 50 per second.");
             })
         ];
-        planetName.innerText = this.currentPlanetName;
+        this.currentPlanet = new Planet();
         for (let i = 0; i < 4; i++) {
             let thisRow = miningTable.insertRow();
             this.miningGrid[i] = [];
@@ -83,7 +80,7 @@ class Game {
     Logic() {
         for (let resource in this.resources) {
             if (resource != "fuel") {
-                this.resources[resource] += (this.mineralAbundance[resource] * this.mineralsPs) / this.fps;
+                this.resources[resource] += (this.currentPlanet.lootTable[resource] * this.mineralsPs) / this.fps;
             }
             else {
                 this.resources.fuel += this.fuelPs / this.fps;
@@ -107,7 +104,7 @@ class Game {
             }
             else {
                 resourceElements.counts[resource].innerText = numFormat(this.resources[resource]);
-                resourceElements.perSecond[resource].innerText = numFormat(this.mineralAbundance[resource] * this.mineralsPs) + "/s";
+                resourceElements.perSecond[resource].innerText = numFormat(this.currentPlanet.lootTable[resource] * this.mineralsPs) + "/s";
             }
         }
         if (this.queuedCommsText.length > 0) {
@@ -163,6 +160,7 @@ class Game {
         this.Render();
     }
     Start() {
+        planetName.innerText = this.currentPlanet.name;
         for (let upgrade of this.upgrades) {
             upgrade.Register();
         }
@@ -225,6 +223,61 @@ class Upgrade {
         this.effect();
     }
 }
+class Planet {
+    constructor(name, lootTable) {
+        if (name == null) {
+            let start = "", end = "";
+            if (Math.random() < 0.5) {
+                while (start == "" || start.charAt(start.length - 1) == end.charAt(0)) {
+                    start = planetNameSegments.start[Math.floor(Math.random() * planetNameSegments.start.length)];
+                    end = planetNameSegments.end[Math.floor(Math.random() * planetNameSegments.end.length)];
+                }
+                this.name = start + end;
+            }
+            else {
+                let middle = "";
+                while (start == "" || start.charAt(start.length - 1) == middle.charAt(0) || middle.charAt(middle.length - 1) == end.charAt(0)) {
+                    start = planetNameSegments.start[Math.floor(Math.random() * planetNameSegments.start.length)];
+                    middle = planetNameSegments.middle[Math.floor(Math.random() * planetNameSegments.middle.length)];
+                    end = planetNameSegments.end[Math.floor(Math.random() * planetNameSegments.end.length)];
+                }
+                this.name = start + middle + end;
+            }
+        }
+        else {
+            this.name = name;
+        }
+        if (lootTable == null) {
+            this.lootTable = {
+                iron: 0,
+                copper: 0,
+                aluminum: 0,
+                lead: 0,
+                titanium: 0
+            };
+            const resources = Object.keys(this.lootTable);
+            const abundant = resources[Math.floor(Math.random() * resources.length)];
+            this.lootTable[abundant] = Math.random() * 0.3 + 0.6;
+            let sum = 0;
+            resources.forEach((resource) => {
+                if (resource !== abundant) {
+                    let chosen = Math.random() * 5 + 3;
+                    sum += chosen;
+                    this.lootTable[resource] = chosen;
+                }
+            });
+            let remaining = 1 - this.lootTable[abundant];
+            resources.forEach((resource) => {
+                if (resource !== abundant) {
+                    this.lootTable[resource] = (this.lootTable[resource] / sum) * remaining;
+                }
+            });
+        }
+        else {
+            this.lootTable = lootTable;
+        }
+    }
+}
 class CommsText {
     constructor(text) {
         this.textElement = null;
@@ -282,27 +335,6 @@ function numFormat(num) {
         .toString()
         .replace(/\.0$/, "") + suffix);
 }
-const planetNameSegments = {
-    start: ["Zubr", "Avi", "Heso", "Hal", "Hea", "Pio", "Druc", "Llaz", "Fenr", "Xant", "Kryst", "Nym", "Zephyr", "Eldr", "Myst", "Vent", "Gor", "Kel", "Tyr", "Gryf", "Jyn", "Kron", "Vyr", "Ryn", "Lyr", "Cyr", "Syr", "Hyr", "Myyr", "Fyr", "Vyrn", "Cycl", "Kyn", "Jyr", "Wyr", "Zyr", "Ilin", "Alin", "Ethon", "Zyx", "Pix", "Zelr", "Abr", "Havir", "Hil", "Heli", "Pyr", "Dryl", "Lysz", "Fyrn", "Xar", "Kryl", "Nyl", "Zelph", "Eldyn", "Myzt", "Vyrn", "Gyr", "Kyl", "Tyl", "Gryl", "Jyl", "Kryl"],
-    middle: ["iun", "arut", "sie", "nad", "wei", "vis", "itov", "eth", "ora", "ion", "aria", "ael", "aril", "ith", "osar", "ath", "ion", "iam", "iria", "iael", "ina", "orio", "oria", "ila", "ira", "ixu", "ily", "axy", "axi", "axo"],
-    end: ["ia", "a", "o", "e", "u", "i", "is", "es", "us", "os", "ys", "ysus", "ax", "ion", "el", "ar", "er", "ir", "yr", "or", "ur", "esir", "ios", "ius", "ois", "ysa", "ora", "ese", "asi", "asi", "oxi", "oxa", "oxo", "axin", "arin", "elia", "eal", "ifia", "th", "arn", "ry"]
-};
-function genPlanetName() {
-    let len = Math.floor(Math.random() * 2) + 2;
-    while (true) {
-        let start = planetNameSegments.start[Math.floor(Math.random() * planetNameSegments.start.length)];
-        let middle = planetNameSegments.middle[Math.floor(Math.random() * planetNameSegments.middle.length)];
-        let end = planetNameSegments.end[Math.floor(Math.random() * planetNameSegments.end.length)];
-        if (!(start.charAt(start.length - 1) == middle.charAt(0) || start.charAt(start.length - 1) == end.charAt(0) || middle.charAt(middle.length - 1) == end.charAt(0))) {
-            if (len == 2) {
-                return start + end;
-            }
-            else if (len == 3) {
-                return start + middle + end;
-            }
-        }
-    }
-}
 function selectTab(event, tabId) {
     const tabcontent = document.getElementsByClassName("tabcontent");
     Array.from(tabcontent).forEach((tab) => (tab.style.display = "none"));
@@ -318,40 +350,6 @@ function handleResize() {
     drillImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - drillImage.clientHeight - 0.32 * (drillImage.clientWidth / Math.SQRT2) + 0.01 * planetRadius + "px";
     pumpImage.style.left = planetPosMiddle[0] - planetRadius / Math.SQRT2 - pumpImage.clientWidth / 2 + 0.01 * planetRadius + "px";
     pumpImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - pumpImage.clientHeight + 0.01 * planetRadius + "px";
-}
-function upgradesToTable(upgradeArray, specifiedTable) {
-    let table = "";
-    for (let i = 0; i < upgradeArray.length; i++) {
-        let upgrade = upgradeArray[i];
-        table += "<tr>";
-        table += `<td class="upgradeTableIcon">${upgrade.icon}</td>`;
-        table += `<td class="upgradeTableName">${upgrade.name}</td>`;
-        table += `<td class="upgradeTableDesc">${upgrade.desc}</td>`;
-        table += `<td class="upgradeTableCost">`;
-        for (let [key, value] of Object.entries(upgrade.costs)) {
-            if (value !== 0) {
-                table += `${key}: ${value} <br>`;
-            }
-        }
-        table += "</td>";
-        table += `<td class="upgradeTableOwned">x${upgrade.owned}</td>`;
-        table += "</tr>";
-    }
-    specifiedTable.innerHTML = table;
-}
-function generatePlanet() {
-    let planetName = genPlanetName();
-    const resources = ["iron", "copper", "aluminum", "lead", "titanium"];
-    let planetLootTable = {};
-    const abundant = resources[Math.floor(Math.random() * resources.length)];
-    planetLootTable[abundant] = Math.random() * 0.3 + 0.6;
-    let remaining = 1 - planetLootTable[abundant];
-    resources.forEach((resource) => {
-        if (resource !== abundant) {
-            planetLootTable[resource] = (Math.random() * remaining) / (resources.length - 1);
-            remaining -= planetLootTable[resource];
-        }
-    });
 }
 window.addEventListener("resize", handleResize);
 handleResize();

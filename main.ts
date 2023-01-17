@@ -40,6 +40,12 @@ const bgImage = document.getElementById("bgImage") as HTMLImageElement,
         }
     };
 
+const planetNameSegments = {
+    start: ["Zubr", "Avi", "Heso", "Hal", "Hea", "Pio", "Druc", "Llaz", "Fenr", "Xant", "Kryst", "Nym", "Zephyr", "Eldr", "Myst", "Vent", "Gor", "Kel", "Tyr", "Gryf", "Jyn", "Kron", "Vyr", "Ryn", "Lyr", "Cyr", "Syr", "Hyr", "Myyr", "Fyr", "Vyrn", "Cycl", "Kyn", "Jyr", "Wyr", "Zyr", "Ilin", "Alin", "Ethon", "Zyx", "Pix", "Zelr", "Abr", "Havir", "Hil", "Heli", "Pyr", "Dryl", "Lysz", "Fyrn", "Xar", "Kryl", "Nyl", "Zelph", "Eldyn", "Myzt", "Vyrn", "Gyr", "Kyl", "Tyl", "Gryl", "Jyl", "Kryl"],
+    middle: ["iun", "arut", "sie", "nad", "wei", "vis", "itov", "eth", "ora", "ion", "aria", "ael", "aril", "ith", "osar", "ath", "ion", "iam", "iria", "iael", "ina", "orio", "oria", "ila", "ira", "ixu", "ily", "axy", "axi", "axo"],
+    end: ["ia", "a", "o", "e", "u", "i", "is", "es", "us", "os", "ys", "ysus", "ax", "ion", "el", "ar", "er", "ir", "yr", "or", "ur", "esir", "ios", "ius", "ois", "ysa", "ora", "ese", "asi", "asi", "oxi", "oxa", "oxo", "axin", "arin", "elia", "eal", "ifia", "th", "arn", "ry"]
+};
+
 class Game {
     readonly fps = 30;
 
@@ -50,13 +56,6 @@ class Game {
         lead: 0,
         titanium: 0,
         fuel: 0
-    };
-    mineralAbundance: MineralObj<number> = {
-        iron: 0,
-        copper: 0,
-        aluminum: 0,
-        lead: 0,
-        titanium: 0
     };
     mineralsPs: number = 0;
     fuelPs: number = 0;
@@ -73,7 +72,7 @@ class Game {
     commsBlinkShown = false;
     commsBlinkTimer = 15;
 
-    currentPlanetName = genPlanetName();
+    currentPlanet: Planet;
 
     upgrades: Upgrade[] = [
         new Upgrade(upgradeTables.drill, "🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100, copper: 1 }, () => {
@@ -91,7 +90,7 @@ class Game {
     ];
 
     constructor() {
-        planetName.innerText = this.currentPlanetName;
+        this.currentPlanet = new Planet();
 
         for (let i = 0; i < 4; i++) {
             let thisRow = miningTable.insertRow();
@@ -118,7 +117,7 @@ class Game {
     Logic() {
         for (let resource in this.resources) {
             if (resource != "fuel") {
-                this.resources[resource as keyof ResourceObj<number>] += (this.mineralAbundance[resource as keyof MineralObj<number>] * this.mineralsPs) / this.fps;
+                this.resources[resource as keyof ResourceObj<number>] += (this.currentPlanet.lootTable[resource as keyof MineralObj<number>] * this.mineralsPs) / this.fps;
             } else {
                 this.resources.fuel += this.fuelPs / this.fps;
             }
@@ -151,7 +150,7 @@ class Game {
                 }
             } else {
                 resourceElements.counts[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.resources[resource as keyof MineralObj<number>]);
-                resourceElements.perSecond[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.mineralAbundance[resource as keyof MineralObj<number>] * this.mineralsPs) + "/s";
+                resourceElements.perSecond[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.currentPlanet.lootTable[resource as keyof MineralObj<number>] * this.mineralsPs) + "/s";
             }
         }
 
@@ -221,6 +220,8 @@ class Game {
     }
 
     Start() {
+        planetName.innerText = this.currentPlanet.name;
+
         for (let upgrade of this.upgrades) {
             upgrade.Register();
         }
@@ -303,6 +304,73 @@ class Upgrade {
     }
 }
 
+class Planet {
+    name: string;
+    lootTable: MineralObj<number>;
+
+    constructor();
+    constructor(name: string, lootTable: MineralObj<number>);
+    constructor(name?: string, lootTable?: MineralObj<number>) {
+        if (name == null) {
+            let start = "",
+                end = "";
+
+            if (Math.random() < 0.5) {
+                while (start == "" || start.charAt(start.length - 1) == end.charAt(0)) {
+                    start = planetNameSegments.start[Math.floor(Math.random() * planetNameSegments.start.length)];
+                    end = planetNameSegments.end[Math.floor(Math.random() * planetNameSegments.end.length)];
+                }
+
+                this.name = start + end;
+            } else {
+                let middle = "";
+
+                while (start == "" || start.charAt(start.length - 1) == middle.charAt(0) || middle.charAt(middle.length - 1) == end.charAt(0)) {
+                    start = planetNameSegments.start[Math.floor(Math.random() * planetNameSegments.start.length)];
+                    middle = planetNameSegments.middle[Math.floor(Math.random() * planetNameSegments.middle.length)];
+                    end = planetNameSegments.end[Math.floor(Math.random() * planetNameSegments.end.length)];
+                }
+
+                this.name = start + middle + end;
+            }
+        } else {
+            this.name = name;
+        }
+
+        if (lootTable == null) {
+            this.lootTable = {
+                iron: 0,
+                copper: 0,
+                aluminum: 0,
+                lead: 0,
+                titanium: 0
+            };
+            const resources = Object.keys(this.lootTable) as (keyof MineralObj<number>)[];
+
+            const abundant = resources[Math.floor(Math.random() * resources.length)];
+            this.lootTable[abundant] = Math.random() * 0.3 + 0.6; // random between 0.60 and 0.90
+
+            let sum = 0;
+            resources.forEach((resource) => {
+                if (resource !== abundant) {
+                    let chosen = Math.random() * 5 + 3;
+                    sum += chosen;
+                    this.lootTable[resource] = chosen;
+                }
+            });
+
+            let remaining = 1 - this.lootTable[abundant];
+            resources.forEach((resource) => {
+                if (resource !== abundant) {
+                    this.lootTable[resource] = (this.lootTable[resource] / sum) * remaining;
+                }
+            });
+        } else {
+            this.lootTable = lootTable;
+        }
+    }
+}
+
 class CommsText {
     textRemaining: string;
 
@@ -376,30 +444,6 @@ function numFormat(num: number): string {
     );
 }
 
-const planetNameSegments = {
-    start: ["Zubr", "Avi", "Heso", "Hal", "Hea", "Pio", "Druc", "Llaz", "Fenr", "Xant", "Kryst", "Nym", "Zephyr", "Eldr", "Myst", "Vent", "Gor", "Kel", "Tyr", "Gryf", "Jyn", "Kron", "Vyr", "Ryn", "Lyr", "Cyr", "Syr", "Hyr", "Myyr", "Fyr", "Vyrn", "Cycl", "Kyn", "Jyr", "Wyr", "Zyr", "Ilin", "Alin", "Ethon", "Zyx", "Pix", "Zelr", "Abr", "Havir", "Hil", "Heli", "Pyr", "Dryl", "Lysz", "Fyrn", "Xar", "Kryl", "Nyl", "Zelph", "Eldyn", "Myzt", "Vyrn", "Gyr", "Kyl", "Tyl", "Gryl", "Jyl", "Kryl"],
-    middle: ["iun", "arut", "sie", "nad", "wei", "vis", "itov", "eth", "ora", "ion", "aria", "ael", "aril", "ith", "osar", "ath", "ion", "iam", "iria", "iael", "ina", "orio", "oria", "ila", "ira", "ixu", "ily", "axy", "axi", "axo"],
-    end: ["ia", "a", "o", "e", "u", "i", "is", "es", "us", "os", "ys", "ysus", "ax", "ion", "el", "ar", "er", "ir", "yr", "or", "ur", "esir", "ios", "ius", "ois", "ysa", "ora", "ese", "asi", "asi", "oxi", "oxa", "oxo", "axin", "arin", "elia", "eal", "ifia", "th", "arn", "ry"]
-};
-
-function genPlanetName() {
-    let len = Math.floor(Math.random() * 2) + 2;
-
-    while (true) {
-        let start = planetNameSegments.start[Math.floor(Math.random() * planetNameSegments.start.length)];
-        let middle = planetNameSegments.middle[Math.floor(Math.random() * planetNameSegments.middle.length)];
-        let end = planetNameSegments.end[Math.floor(Math.random() * planetNameSegments.end.length)];
-
-        if (!(start.charAt(start.length - 1) == middle.charAt(0) || start.charAt(start.length - 1) == end.charAt(0) || middle.charAt(middle.length - 1) == end.charAt(0))) {
-            if (len == 2) {
-                return start + end;
-            } else if (len == 3) {
-                return start + middle + end;
-            }
-        }
-    }
-}
-
 function selectTab(event: PointerEvent, tabId: string) {
     const tabcontent = document.getElementsByClassName("tabcontent") as HTMLCollectionOf<HTMLElement>;
     Array.from(tabcontent).forEach((tab) => (tab.style.display = "none"));
@@ -420,46 +464,6 @@ function handleResize() {
 
     pumpImage.style.left = planetPosMiddle[0] - planetRadius / Math.SQRT2 - pumpImage.clientWidth / 2 + 0.01 * planetRadius + "px";
     pumpImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - pumpImage.clientHeight + 0.01 * planetRadius + "px";
-}
-
-function upgradesToTable(upgradeArray: Upgrade[], specifiedTable: HTMLTableElement) {
-    let table = "";
-    for (let i = 0; i < upgradeArray.length; i++) {
-        let upgrade = upgradeArray[i];
-        table += "<tr>";
-        table += `<td class="upgradeTableIcon">${upgrade.icon}</td>`;
-        table += `<td class="upgradeTableName">${upgrade.name}</td>`;
-        table += `<td class="upgradeTableDesc">${upgrade.desc}</td>`;
-
-        table += `<td class="upgradeTableCost">`;
-        for (let [key, value] of Object.entries(upgrade.costs)) {
-            if (value !== 0) {
-                table += `${key}: ${value} <br>`;
-            }
-        }
-        table += "</td>";
-
-        table += `<td class="upgradeTableOwned">x${upgrade.owned}</td>`;
-        table += "</tr>";
-    }
-    specifiedTable.innerHTML = table;
-}
-
-function generatePlanet() {
-    let planetName = genPlanetName();
-    const resources = ["iron", "copper", "aluminum", "lead", "titanium"];
-    let planetLootTable = {};
-
-    const abundant = resources[Math.floor(Math.random() * resources.length)];
-    planetLootTable[abundant] = Math.random() * 0.3 + 0.6; // random between 0.60 and 0.90
-
-    let remaining = 1 - planetLootTable[abundant];
-    resources.forEach((resource) => {
-        if (resource !== abundant) {
-            planetLootTable[resource] = (Math.random() * remaining) / (resources.length - 1);
-            remaining -= planetLootTable[resource];
-        }
-    });
 }
 
 // Register event listeners for page

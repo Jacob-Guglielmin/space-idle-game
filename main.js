@@ -1,5 +1,5 @@
 "use strict";
-var bgImage = document.getElementById("bgImage"), drillImage = document.getElementById("drillImage"), pumpImage = document.getElementById("pumpImage"), planet = document.getElementById("planet"), miningTable = document.getElementById("miningTable"), comms = document.getElementById("comms"), planetName = document.getElementById("planetName"), shipContainer = document.getElementById("shipContainer"), resourceElements = {
+const bgImage = document.getElementById("bgImage"), drillImage = document.getElementById("drillImage"), pumpImage = document.getElementById("pumpImage"), planet = document.getElementById("planet"), miningTable = document.getElementById("miningTable"), comms = document.getElementById("comms"), planetName = document.getElementById("planetName"), shipContainer = document.getElementById("shipContainer"), resourceElements = {
     counts: {
         iron: document.getElementById("ironCount"),
         copper: document.getElementById("copperCount"),
@@ -15,8 +15,8 @@ var bgImage = document.getElementById("bgImage"), drillImage = document.getEleme
         titanium: document.getElementById("titaniumPs")
     }
 };
-var Game = (function () {
-    function Game() {
+class Game {
+    constructor() {
         this.fps = 30;
         this.resources = {
             iron: 0,
@@ -43,26 +43,42 @@ var Game = (function () {
         this.commsBlinkShown = false;
         this.commsBlinkTimer = 15;
         this.currentPlanetName = genPlanetName();
+        this.drillUpgrade1_effect = () => {
+            this.mineralsPs += 1;
+            new CommsText("You have increased your mining rate by 1 per second.");
+        };
+        this.drillUpgrade1 = new Upgrade("🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100 }, this.drillUpgrade1_effect);
+        this.drillUpgrade2_effect = () => {
+            this.mineralsPs += 1;
+            new CommsText("You have increased your mining rate by 10 per second.");
+        };
+        this.drillUpgrade2 = new Upgrade("🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000 }, this.drillUpgrade1_effect);
+        this.drillUpgrade3_effect = () => {
+            this.mineralsPs += 1;
+            new CommsText("You have increased your mining rate by 50 per second.");
+        };
+        this.drillUpgrade3 = new Upgrade("🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500 }, this.drillUpgrade1_effect);
+        this.drillUpgrades = [this.drillUpgrade1, this.drillUpgrade2, this.drillUpgrade3];
         planetName.innerText = this.currentPlanetName;
-        for (var i = 0; i < 4; i++) {
-            var thisRow = miningTable.insertRow();
+        for (let i = 0; i < 4; i++) {
+            let thisRow = miningTable.insertRow();
             this.miningGrid[i] = [];
-            for (var j = 0; j < 5; j++) {
+            for (let j = 0; j < 5; j++) {
                 this.miningGrid[i][j] = thisRow.insertCell();
                 this.miningGrid[i][j].onclick = null;
             }
         }
-        document.querySelectorAll("img").forEach(function (img) {
+        document.querySelectorAll("img").forEach((img) => {
             img.setAttribute("draggable", "false");
         });
-        var commsFirst = document.createElement("p");
+        let commsFirst = document.createElement("p");
         commsFirst.innerText = ">";
         comms.appendChild(commsFirst);
         this.commsTextElements.push(commsFirst);
         comms.scrollTop = comms.scrollHeight;
     }
-    Game.prototype.Logic = function () {
-        for (var resource in this.resources) {
+    Logic() {
+        for (let resource in this.resources) {
             if (resource != "fuel") {
                 this.resources[resource] += (this.mineralAbundance[resource] * this.mineralsPs) / this.fps;
             }
@@ -70,13 +86,13 @@ var Game = (function () {
                 this.resources.fuel += this.fuelPs / this.fps;
             }
         }
-    };
-    Game.prototype.Render = function () {
+    }
+    Render() {
         bgImage.style.width = Math.sqrt(Math.pow((window.innerWidth / 2), 2) + Math.pow(window.innerHeight, 2)) * 2 + "px";
         bgImage.style.height = Math.sqrt(Math.pow((window.innerWidth / 2), 2) + Math.pow(window.innerHeight, 2)) * 2 + "px";
         this.bgRotation += 0.015;
         bgImage.style.transform = "translate(-50%, -50%) rotate(" + this.bgRotation + "deg)";
-        for (var resource in this.resources) {
+        for (let resource in this.resources) {
             if (resource == "fuel") {
                 shipContainer.style.backgroundPositionY = (1 - this.resources.fuel / this.fuelRequirement) * shipContainer.clientHeight - shipContainer.clientHeight * 0.084 + "px";
                 if (this.resources.fuel >= this.fuelRequirement) {
@@ -97,7 +113,7 @@ var Game = (function () {
             }
             this.queuedCommsText[0].Render();
             if (this.queuedCommsText[0].complete) {
-                var nextElement = document.createElement("p");
+                let nextElement = document.createElement("p");
                 nextElement.innerText = ">";
                 comms.appendChild(nextElement);
                 this.commsTextElements.push(nextElement);
@@ -106,7 +122,7 @@ var Game = (function () {
             comms.scrollTop = comms.scrollHeight;
         }
         else {
-            var update = false;
+            let update = false;
             if (this.commsBlinkTimer > 0) {
                 this.commsBlinkTimer--;
             }
@@ -124,33 +140,35 @@ var Game = (function () {
                 }
             }
         }
-    };
-    Game.prototype.ChooseMineral = function (chances) {
-        var total = 0;
-        for (var mineral in chances) {
+    }
+    ChooseMineral(chances) {
+        let total = 0;
+        for (let mineral in chances) {
             total += chances[mineral];
         }
-        var rand = Math.random() * total;
-        for (var mineral in chances) {
+        let rand = Math.random() * total;
+        for (let mineral in chances) {
             rand -= chances[mineral];
             if (rand < 0) {
                 return mineral;
             }
         }
         return "iron";
-    };
-    Game.prototype.Loop = function () {
+    }
+    Loop() {
         this.Logic();
         this.Render();
-    };
-    Game.prototype.Start = function () {
+    }
+    Start() {
+        upgradesToTable(this.drillUpgrades, document.getElementById("drillUpgradeTable"));
+        assignListenersToTables();
         this.Render();
         setInterval(this.Loop.bind(this), 1000 / this.fps);
-    };
-    return Game;
-}());
-var Upgrade = (function () {
-    function Upgrade(name, desc, costs) {
+    }
+}
+class Upgrade {
+    constructor(icon, name, desc, owned, costs, effect) {
+        this.owned = 0;
         this.costs = {
             iron: 0,
             copper: 0,
@@ -159,16 +177,25 @@ var Upgrade = (function () {
             titanium: 0,
             fuel: 0
         };
+        this.icon = icon;
         this.name = name;
         this.desc = desc;
-        for (var resource in costs) {
+        this.owned = owned;
+        for (let resource in costs) {
             this.costs[resource] = costs[resource];
         }
+        this.effect = effect;
     }
-    return Upgrade;
-}());
-var CommsText = (function () {
-    function CommsText(text) {
+    Buy() {
+        for (let resource in this.costs) {
+            game.resources[resource] -= this.costs[resource];
+        }
+        this.owned++;
+        this.effect();
+    }
+}
+class CommsText {
+    constructor(text) {
         this.textElement = null;
         this.complete = false;
         this.prefixSpace = true;
@@ -176,11 +203,11 @@ var CommsText = (function () {
         this.textRemaining = text;
         game.queuedCommsText.push(this);
     }
-    CommsText.prototype.AddElement = function (element) {
+    AddElement(element) {
         this.textElement = element;
         this.textElement.innerText = ">";
-    };
-    CommsText.prototype.Render = function () {
+    }
+    Render() {
         if (this.textElement == null) {
             console.error("Text element not yet created for comms text");
             return;
@@ -195,7 +222,7 @@ var CommsText = (function () {
                 this.textRemaining = this.textRemaining.slice(1);
                 return;
             }
-            var toWrite = "";
+            let toWrite = "";
             if (this.prefixSpace) {
                 toWrite = " ";
                 this.prefixSpace = false;
@@ -213,29 +240,28 @@ var CommsText = (function () {
         else {
             this.complete = true;
         }
-    };
-    return CommsText;
-}());
+    }
+}
 function numFormat(num) {
     if (num < 1)
         return "0";
-    var magnitude = Math.floor(Math.log10(Math.floor(num)) / 3);
-    var suffix = ["", "K", "M", "B", "T", "q", "Q", "s", "S", "O", "N", "D"][magnitude];
+    let magnitude = Math.floor(Math.log10(Math.floor(num)) / 3);
+    let suffix = ["", "K", "M", "B", "T", "q", "Q", "s", "S", "O", "N", "D"][magnitude];
     return (parseFloat((Math.floor(num) / Math.pow(10, magnitude * 3)).toFixed(2))
         .toString()
         .replace(/\.0$/, "") + suffix);
 }
-var planetNameSegments = {
+const planetNameSegments = {
     start: ["Zubr", "Avi", "Heso", "Hal", "Hea", "Pio", "Druc", "Llaz", "Fenr", "Xant", "Kryst", "Nym", "Zephyr", "Eldr", "Myst", "Vent", "Gor", "Kel", "Tyr", "Gryf", "Jyn", "Kron", "Vyr", "Ryn", "Lyr", "Cyr", "Syr", "Hyr", "Myyr", "Fyr", "Vyrn", "Cycl", "Kyn", "Jyr", "Wyr", "Zyr", "Ilin", "Alin", "Ethon", "Zyx", "Pix", "Zelr", "Abr", "Havir", "Hil", "Heli", "Pyr", "Dryl", "Lysz", "Fyrn", "Xar", "Kryl", "Nyl", "Zelph", "Eldyn", "Myzt", "Vyrn", "Gyr", "Kyl", "Tyl", "Gryl", "Jyl", "Kryl"],
     middle: ["iun", "arut", "sie", "nad", "wei", "vis", "itov", "eth", "ora", "ion", "aria", "ael", "aril", "ith", "osar", "ath", "ion", "iam", "iria", "iael", "ina", "orio", "oria", "ila", "ira", "ixu", "ily", "axy", "axi", "axo"],
     end: ["ia", "a", "o", "e", "u", "i", "is", "es", "us", "os", "ys", "ysus", "ax", "ion", "el", "ar", "er", "ir", "yr", "or", "ur", "esir", "ios", "ius", "ois", "ysa", "ora", "ese", "asi", "asi", "oxi", "oxa", "oxo", "axin", "arin", "elia", "eal", "ifia", "th", "arn", "ry"]
 };
 function genPlanetName() {
-    var len = Math.floor(Math.random() * 2) + 2;
+    let len = Math.floor(Math.random() * 2) + 2;
     while (true) {
-        var start = planetNameSegments.start[Math.floor(Math.random() * planetNameSegments.start.length)];
-        var middle = planetNameSegments.middle[Math.floor(Math.random() * planetNameSegments.middle.length)];
-        var end = planetNameSegments.end[Math.floor(Math.random() * planetNameSegments.end.length)];
+        let start = planetNameSegments.start[Math.floor(Math.random() * planetNameSegments.start.length)];
+        let middle = planetNameSegments.middle[Math.floor(Math.random() * planetNameSegments.middle.length)];
+        let end = planetNameSegments.end[Math.floor(Math.random() * planetNameSegments.end.length)];
         if (!(start.charAt(start.length - 1) == middle.charAt(0) || start.charAt(start.length - 1) == end.charAt(0) || middle.charAt(middle.length - 1) == end.charAt(0))) {
             if (len == 2) {
                 return start + end;
@@ -247,22 +273,52 @@ function genPlanetName() {
     }
 }
 function selectTab(event, tabId) {
-    var tabcontent = document.getElementsByClassName("tabcontent");
-    Array.from(tabcontent).forEach(function (tab) { return (tab.style.display = "none"); });
-    var tablinks = document.getElementsByClassName("tablinks");
-    Array.from(tablinks).forEach(function (link) { return link.classList.remove("active"); });
+    const tabcontent = document.getElementsByClassName("tabcontent");
+    Array.from(tabcontent).forEach((tab) => (tab.style.display = "none"));
+    const tablinks = document.getElementsByClassName("tablinks");
+    Array.from(tablinks).forEach((link) => link.classList.remove("active"));
     document.getElementById(tabId).style.display = "block";
     event.currentTarget.classList.add("active");
 }
 function handleResize() {
-    var planetPosMiddle = [planet.getBoundingClientRect().left + planet.getBoundingClientRect().width / 2, planet.getBoundingClientRect().top + planet.getBoundingClientRect().height / 2];
-    var planetRadius = planet.getBoundingClientRect().width / 2;
+    let planetPosMiddle = [planet.getBoundingClientRect().left + planet.getBoundingClientRect().width / 2, planet.getBoundingClientRect().top + planet.getBoundingClientRect().height / 2];
+    let planetRadius = planet.getBoundingClientRect().width / 2;
     drillImage.style.left = planetPosMiddle[0] + planetRadius / Math.SQRT2 - drillImage.clientWidth / 2 - 0.32 * (drillImage.clientWidth / Math.SQRT2) - 0.01 * planetRadius + "px";
     drillImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - drillImage.clientHeight - 0.32 * (drillImage.clientWidth / Math.SQRT2) + 0.01 * planetRadius + "px";
     pumpImage.style.left = planetPosMiddle[0] - planetRadius / Math.SQRT2 - pumpImage.clientWidth / 2 + 0.01 * planetRadius + "px";
     pumpImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - pumpImage.clientHeight + 0.01 * planetRadius + "px";
 }
+function upgradesToTable(upgradeArray, specifiedTable) {
+    let table = "";
+    for (let i = 0; i < upgradeArray.length; i++) {
+        let upgrade = upgradeArray[i];
+        table += "<tr>";
+        table += `<td class="upgradeTableIcon">${upgrade.icon}</td>`;
+        table += `<td class="upgradeTableName">${upgrade.name}</td>`;
+        table += `<td class="upgradeTableDesc">${upgrade.desc}</td>`;
+        table += `<td class="upgradeTableCost">${Object.keys(upgrade.costs)[0]}: ${upgrade.costs[(Object.keys(upgrade.costs)[0])]}</td>`;
+        table += `<td class="upgradeTableOwned">x${upgrade.owned}</td>`;
+        table += "</tr>";
+    }
+    specifiedTable.innerHTML = table;
+}
+function assignListenersToTables() {
+    const rows = document.querySelectorAll("#drillUpgradeTable tr");
+    for (let i = 0; i < rows.length; i++) {
+        rows[i].addEventListener("click", function () {
+            if (i === 0) {
+                game.drillUpgrade1.Buy();
+            }
+            else if (i === 1) {
+                game.drillUpgrade2.Buy();
+            }
+            else if (i === 2) {
+                game.drillUpgrade3.Buy();
+            }
+        });
+    }
+}
 window.addEventListener("resize", handleResize);
 handleResize();
-var game = new Game();
+const game = new Game();
 game.Start();

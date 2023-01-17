@@ -225,7 +225,7 @@ class Upgrade {
 }
 class Planet {
     constructor(name, lootTable) {
-        if (name == null) {
+        if (name == undefined) {
             let start = "", end = "";
             if (Math.random() < 0.5) {
                 while (start == "" || start.charAt(start.length - 1) == end.charAt(0)) {
@@ -247,7 +247,7 @@ class Planet {
         else {
             this.name = name;
         }
-        if (lootTable == null) {
+        if (lootTable == undefined) {
             this.lootTable = {
                 iron: 0,
                 copper: 0,
@@ -343,15 +343,5 @@ function selectTab(event, tabId) {
     document.getElementById(tabId).style.display = "block";
     event.currentTarget.classList.add("active");
 }
-function handleResize() {
-    let planetPosMiddle = [planet.getBoundingClientRect().left + planet.getBoundingClientRect().width / 2, planet.getBoundingClientRect().top + planet.getBoundingClientRect().height / 2];
-    let planetRadius = planet.getBoundingClientRect().width / 2;
-    drillImage.style.left = planetPosMiddle[0] + planetRadius / Math.SQRT2 - drillImage.clientWidth / 2 - 0.32 * (drillImage.clientWidth / Math.SQRT2) - 0.01 * planetRadius + "px";
-    drillImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - drillImage.clientHeight - 0.32 * (drillImage.clientWidth / Math.SQRT2) + 0.01 * planetRadius + "px";
-    pumpImage.style.left = planetPosMiddle[0] - planetRadius / Math.SQRT2 - pumpImage.clientWidth / 2 + 0.01 * planetRadius + "px";
-    pumpImage.style.top = planetPosMiddle[1] - planetRadius / Math.SQRT2 - pumpImage.clientHeight + 0.01 * planetRadius + "px";
-}
-window.addEventListener("resize", handleResize);
-handleResize();
 const game = new Game();
 game.Start();

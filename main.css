@@ -29,17 +29,27 @@ body {
 #pumpImage {
     position: absolute;
     height: 20vh;
+    /* width is 0.6258x the height */
     transform-origin: bottom center;
     transform: rotate(-45deg);
     z-index: -5;
+    /* (<screen width> / 2) - (<planet width> / 2>) / SQRT2 - <pump image width> / 2 + 0.01 * (<planet width> / 2) */
+    left: calc(50vw - 35vw / 1.4142135 - (20vh * 0.6258) / 2 + 0.01 * 35vw);
+    /* (<planet top> + (<planet width> / 2)) - (<planet width> / 2) / SQRT2 - <pump image height> + 0.01 * (<planet width> / 2) */
+    top: calc(((130vh - 35vw) + 35vw) - 35vw / 1.4142135 - 20vh + 0.01 * 35vw);
 }
 
 #drillImage {
     position: absolute;
     height: 20vh;
+    /* width is 0.9234x the height */
     transform-origin: bottom center;
     transform: rotate(45deg);
     z-index: -5;
+    /* (<screen width> / 2) + (<planet width> / 2) / SQRT2 - <drill image width> / 2 - 0.32 * (<drill image width> / SQRT2) - 0.01 * (<planet width> / 2) */
+    left: calc(50vw + 35vw / 1.4142135 - (20vh * 0.9234) / 2 - 0.32 * ((20vh * 0.9234) / 1.4142135) - 0.01 * 35vw);
+    /* (<planet top> + (<planet width> / 2)) - (<planet width> / 2) / SQRT2 - <drill image height> - 0.32 * (<drill image width> / SQRT2) + 0.01 * (<planet width> / 2) */
+    top: calc(((130vh - 35vw) + 35vw) - 35vw / 1.4142135 - 20vh - 0.32 * ((20vh * 0.9234) / 1.4142135) + 0.01 * 35vw);
 }
 
 #miningTable {

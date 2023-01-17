@@ -266,16 +266,16 @@ body {
     display: none;
 }
 
-#drillUpgradeTable {
+.upgradeTable {
     border-collapse: collapse;
 }
-#drillUpgradeTable tr:not(:last-child) {
+.upgradeTable tr:not(:last-child) {
     border-bottom: 1px solid white;
 }
-#drillUpgradeTable tr:hover {
+.upgradeTable tr:hover {
     background-color: #ffffff30;
 }
-#drillUpgradeTable td {
+.upgradeTable td {
     padding-top: 2vh;
     padding-bottom: 2vh;
 }

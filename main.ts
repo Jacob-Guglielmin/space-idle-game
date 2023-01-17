@@ -73,19 +73,19 @@ class Game {
         this.mineralsPs += 1;
         new CommsText("You have increased your mining rate by 1 per second.");
     };
-    drillUpgrade1: Upgrade = new Upgrade("🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100 }, this.drillUpgrade1_effect);
+    drillUpgrade1: Upgrade = new Upgrade("🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100, copper: 1 }, this.drillUpgrade1_effect);
 
     drillUpgrade2_effect = () => {
         this.mineralsPs += 10;
         new CommsText("You have increased your mining rate by 10 per second.");
     };
-    drillUpgrade2: Upgrade = new Upgrade("🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000 }, this.drillUpgrade2_effect);
+    drillUpgrade2: Upgrade = new Upgrade("🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000, copper: 25 }, this.drillUpgrade2_effect);
 
     drillUpgrade3_effect = () => {
         this.mineralsPs += 50;
         new CommsText("You have increased your mining rate by 50 per second.");
     };
-    drillUpgrade3: Upgrade = new Upgrade("🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500 }, this.drillUpgrade3_effect);
+    drillUpgrade3: Upgrade = new Upgrade("🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500, copper: 150, aluminum: 20 }, this.drillUpgrade3_effect);
 
     // list of upgrades
     drillUpgrades: Upgrade[] = [this.drillUpgrade1, this.drillUpgrade2, this.drillUpgrade3];
@@ -392,7 +392,15 @@ function upgradesToTable(upgradeArray: Upgrade[], specifiedTable: HTMLTableEleme
         table += `<td class="upgradeTableIcon">${upgrade.icon}</td>`;
         table += `<td class="upgradeTableName">${upgrade.name}</td>`;
         table += `<td class="upgradeTableDesc">${upgrade.desc}</td>`;
-        table += `<td class="upgradeTableCost">${Object.keys(upgrade.costs)[0]}: ${upgrade.costs[Object.keys(upgrade.costs)[0] as keyof ResourceObj<number>]}</td>`;
+
+        table += `<td class="upgradeTableCost">`;
+        for (let [key, value] of Object.entries(upgrade.costs)) {
+            if (value !== 0) {
+                table += `${key}: ${value} <br>`;
+            }
+        }
+        table += "</td>";
+
         table += `<td class="upgradeTableOwned">x${upgrade.owned}</td>`;
         table += "</tr>";
     }

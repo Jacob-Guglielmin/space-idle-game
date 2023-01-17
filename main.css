@@ -5,6 +5,8 @@ body {
     user-select: none;
     color: white;
     font-family: sans-serif;
+    width: 100vw;
+    height: 100vh;
 }
 
 #bgImage {
@@ -92,7 +94,7 @@ body {
     grid-row: 1 / 2;
     grid-column: 2;
     border-bottom: 2px solid white;
-    overflow: scroll;
+    overflow-y: auto;
 }
 
 #comms > p {

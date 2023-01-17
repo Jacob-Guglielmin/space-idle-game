@@ -297,6 +297,12 @@ class Upgrade {
 
     Buy() {
         for (let resource in this.costs) {
+            if (game.resources[resource as keyof ResourceObj<number>] < this.costs[resource as keyof ResourceObj<number>]) {
+                return;
+            }
+        }
+
+        for (let resource in this.costs) {
             game.resources[resource as keyof ResourceObj<number>] -= this.costs[resource as keyof ResourceObj<number>];
         }
         this.owned++;

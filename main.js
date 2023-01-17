@@ -217,6 +217,11 @@ class Upgrade {
     }
     Buy() {
         for (let resource in this.costs) {
+            if (game.resources[resource] < this.costs[resource]) {
+                return;
+            }
+        }
+        for (let resource in this.costs) {
             game.resources[resource] -= this.costs[resource];
         }
         this.owned++;

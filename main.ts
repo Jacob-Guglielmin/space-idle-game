@@ -17,7 +17,7 @@ const bgImage = document.getElementById("bgImage") as HTMLImageElement,
     comms = document.getElementById("comms") as HTMLDivElement,
     planetName = document.getElementById("planetName") as HTMLSpanElement,
     shipContainer = document.getElementById("shipContainer") as HTMLDivElement,
-    upgradeTableElements: { [key: string]: HTMLTableElement } = {
+    upgradeTables: { [key: string]: HTMLTableElement } = {
         ship: document.getElementById("shipUpgradeTable") as HTMLTableElement,
         pump: document.getElementById("pumpUpgradeTable") as HTMLTableElement,
         tool: document.getElementById("toolUpgradeTable") as HTMLTableElement,
@@ -75,26 +75,20 @@ class Game {
 
     currentPlanetName = genPlanetName();
 
-    drillUpgrade1_effect = () => {
-        this.mineralsPs += 1;
-        new CommsText("You have increased your mining rate by 1 per second.");
-    };
-    drillUpgrade1: Upgrade = new Upgrade("drill", "🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100, copper: 1 }, this.drillUpgrade1_effect);
-
-    drillUpgrade2_effect = () => {
-        this.mineralsPs += 10;
-        new CommsText("You have increased your mining rate by 10 per second.");
-    };
-    drillUpgrade2: Upgrade = new Upgrade("drill", "🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000, copper: 25 }, this.drillUpgrade2_effect);
-
-    drillUpgrade3_effect = () => {
-        this.mineralsPs += 50;
-        new CommsText("You have increased your mining rate by 50 per second.");
-    };
-    drillUpgrade3: Upgrade = new Upgrade("drill", "🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500, copper: 150, aluminum: 20 }, this.drillUpgrade3_effect);
-
-    // list of upgrades
-    drillUpgrades: Upgrade[] = [this.drillUpgrade1, this.drillUpgrade2, this.drillUpgrade3];
+    upgrades: Upgrade[] = [
+        new Upgrade(upgradeTables.drill, "🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100, copper: 1 }, () => {
+            this.mineralsPs += 1;
+            new CommsText("You have increased your mining rate by 1 per second.");
+        }),
+        new Upgrade(upgradeTables.drill, "🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000, copper: 25 }, () => {
+            this.mineralsPs += 10;
+            new CommsText("You have increased your mining rate by 10 per second.");
+        }),
+        new Upgrade(upgradeTables.drill, "🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500, copper: 150, aluminum: 20 }, () => {
+            this.mineralsPs += 50;
+            new CommsText("You have increased your mining rate by 50 per second.");
+        })
+    ];
 
     constructor() {
         planetName.innerText = this.currentPlanetName;
@@ -227,6 +221,10 @@ class Game {
     }
 
     Start() {
+        for (let upgrade of this.upgrades) {
+            upgrade.Register();
+        }
+
         this.Render();
 
         setInterval(this.Loop.bind(this), 1000 / this.fps);
@@ -234,6 +232,7 @@ class Game {
 }
 
 class Upgrade {
+    table: HTMLTableElement;
     icon: string;
     name: string;
     desc: string;
@@ -248,7 +247,8 @@ class Upgrade {
     };
     effect: () => void;
 
-    constructor(type: "ship" | "pump" | "tool" | "drill", icon: string, name: string, desc: string, owned: number, costs: Partial<ResourceObj<number>>, effect: () => void) {
+    constructor(table: HTMLTableElement, icon: string, name: string, desc: string, owned: number, costs: Partial<ResourceObj<number>>, effect: () => void) {
+        this.table = table;
         this.icon = icon;
         this.name = name;
         this.desc = desc;
@@ -257,22 +257,10 @@ class Upgrade {
             this.costs[resource as keyof ResourceObj<number>] = costs[resource as keyof ResourceObj<number>] as number;
         }
         this.effect = effect;
+    }
 
-        let table: HTMLTableElement;
-
-        if (type == "ship") {
-            table = upgradeTableElements.ship;
-        } else if (type == "pump") {
-            table = upgradeTableElements.pump;
-        } else if (type == "tool") {
-            table = upgradeTableElements.tool;
-        } else if (type == "drill") {
-            table = upgradeTableElements.drill;
-        } else {
-            throw new Error("Invalid upgrade type");
-        }
-
-        let upgradeRow = table.insertRow();
+    Register() {
+        let upgradeRow = this.table.insertRow();
 
         let iconCell = upgradeRow.insertCell(),
             nameCell = upgradeRow.insertCell(),

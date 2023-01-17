@@ -1,5 +1,5 @@
 "use strict";
-const bgImage = document.getElementById("bgImage"), drillImage = document.getElementById("drillImage"), pumpImage = document.getElementById("pumpImage"), planet = document.getElementById("planet"), miningTable = document.getElementById("miningTable"), comms = document.getElementById("comms"), planetName = document.getElementById("planetName"), shipContainer = document.getElementById("shipContainer"), upgradeTableElements = {
+const bgImage = document.getElementById("bgImage"), drillImage = document.getElementById("drillImage"), pumpImage = document.getElementById("pumpImage"), planet = document.getElementById("planet"), miningTable = document.getElementById("miningTable"), comms = document.getElementById("comms"), planetName = document.getElementById("planetName"), shipContainer = document.getElementById("shipContainer"), upgradeTables = {
     ship: document.getElementById("shipUpgradeTable"),
     pump: document.getElementById("pumpUpgradeTable"),
     tool: document.getElementById("toolUpgradeTable"),
@@ -48,22 +48,20 @@ class Game {
         this.commsBlinkShown = false;
         this.commsBlinkTimer = 15;
         this.currentPlanetName = genPlanetName();
-        this.drillUpgrade1_effect = () => {
-            this.mineralsPs += 1;
-            new CommsText("You have increased your mining rate by 1 per second.");
-        };
-        this.drillUpgrade1 = new Upgrade("drill", "🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100, copper: 1 }, this.drillUpgrade1_effect);
-        this.drillUpgrade2_effect = () => {
-            this.mineralsPs += 10;
-            new CommsText("You have increased your mining rate by 10 per second.");
-        };
-        this.drillUpgrade2 = new Upgrade("drill", "🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000, copper: 25 }, this.drillUpgrade2_effect);
-        this.drillUpgrade3_effect = () => {
-            this.mineralsPs += 50;
-            new CommsText("You have increased your mining rate by 50 per second.");
-        };
-        this.drillUpgrade3 = new Upgrade("drill", "🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500, copper: 150, aluminum: 20 }, this.drillUpgrade3_effect);
-        this.drillUpgrades = [this.drillUpgrade1, this.drillUpgrade2, this.drillUpgrade3];
+        this.upgrades = [
+            new Upgrade(upgradeTables.drill, "🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1.0 minerals/sec]", 0, { iron: 100, copper: 1 }, () => {
+                this.mineralsPs += 1;
+                new CommsText("You have increased your mining rate by 1 per second.");
+            }),
+            new Upgrade(upgradeTables.drill, "🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10.0 minerals/sec]", 0, { iron: 1000, copper: 25 }, () => {
+                this.mineralsPs += 10;
+                new CommsText("You have increased your mining rate by 10 per second.");
+            }),
+            new Upgrade(upgradeTables.drill, "🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+50.0 minerals/sec]", 0, { iron: 7500, copper: 150, aluminum: 20 }, () => {
+                this.mineralsPs += 50;
+                new CommsText("You have increased your mining rate by 50 per second.");
+            })
+        ];
         planetName.innerText = this.currentPlanetName;
         for (let i = 0; i < 4; i++) {
             let thisRow = miningTable.insertRow();
@@ -165,12 +163,15 @@ class Game {
         this.Render();
     }
     Start() {
+        for (let upgrade of this.upgrades) {
+            upgrade.Register();
+        }
         this.Render();
         setInterval(this.Loop.bind(this), 1000 / this.fps);
     }
 }
 class Upgrade {
-    constructor(type, icon, name, desc, owned, costs, effect) {
+    constructor(table, icon, name, desc, owned, costs, effect) {
         this.owned = 0;
         this.costs = {
             iron: 0,
@@ -180,6 +181,7 @@ class Upgrade {
             titanium: 0,
             fuel: 0
         };
+        this.table = table;
         this.icon = icon;
         this.name = name;
         this.desc = desc;
@@ -188,23 +190,9 @@ class Upgrade {
             this.costs[resource] = costs[resource];
         }
         this.effect = effect;
-        let table;
-        if (type == "ship") {
-            table = upgradeTableElements.ship;
-        }
-        else if (type == "pump") {
-            table = upgradeTableElements.pump;
-        }
-        else if (type == "tool") {
-            table = upgradeTableElements.tool;
-        }
-        else if (type == "drill") {
-            table = upgradeTableElements.drill;
-        }
-        else {
-            throw new Error("Invalid upgrade type");
-        }
-        let upgradeRow = table.insertRow();
+    }
+    Register() {
+        let upgradeRow = this.table.insertRow();
         let iconCell = upgradeRow.insertCell(), nameCell = upgradeRow.insertCell(), descCell = upgradeRow.insertCell(), costCell = upgradeRow.insertCell(), ownedCell = upgradeRow.insertCell();
         iconCell.classList.add("upgradeTableIcon");
         nameCell.classList.add("upgradeTableName");

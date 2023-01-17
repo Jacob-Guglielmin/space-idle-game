@@ -166,7 +166,7 @@ body {
     border-radius: 10px;
     background-image: url(fuel.png);
     background-repeat: repeat-x;
-    background-position-y: 4vw;
+    background-position-y: calc(8vw * 0.916);
     transition: background-position-y 1s;
     animation: fuelAnim 5s linear infinite;
     background-size: 8vw calc(8vw * 1.084);

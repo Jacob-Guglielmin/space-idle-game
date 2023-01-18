@@ -81,6 +81,61 @@ class Game {
 
         // Pump Upgrades
 
+        // Pump Upgrades
+
+        new Upgrade(upgradeTables.pump, "🚀", "High-Pressure Nozzle", "A more powerful and efficient pumping method.<br>[+X fuel/sec]", 0, { copper: 15, iron: 5 }, () => {
+            // per second += X;
+            new CommsText("You have increased your pump speed by X per second.");
+        }),
+        new Upgrade(upgradeTables.pump, "🚰", "Bigger Tank", "Holds more liquid for longer sessions.<br>[+Y pump capacity]", 0, { copper: 100, iron: 40 }, () => {
+            // capacity += Y;
+            new CommsText("You have increased your pump capacity by Y.");
+        }),
+        new Upgrade(upgradeTables.pump, "🔥", "Insulated Hoses", "Keeps the liquid flowing in colder temperatures.<br>[+X fuel/sec]", 0, { copper: 700, iron: 300 }, () => {
+            // per second += X;
+            new CommsText("You have increased your pump speed by X per second.");
+        }),
+        new Upgrade(upgradeTables.pump, "🌊", "Self-Cleaning Impeller", "A self-cleaning mechanism that prevents clogging.<br>[+X fuel/sec]", 0, { copper: 5000, iron: 1500 }, () => {
+            // per second += X;
+            new CommsText("You have increased your pump speed by X per second.");
+        }),
+        new Upgrade(upgradeTables.pump, "💼", "Modular Tank", "A tank that can easily be branched out for extra space.<br>[+Y pump capacity]", 0, { copper: 27500, iron: 12000 }, () => {
+            // capacity += Y;
+            new CommsText("You have increased your pump capacity by Y.");
+        }),
+        new Upgrade(upgradeTables.pump, "🏭", "Industrial Motor", "A powerful motor for heavy-duty pumping.<br>[+X fuel/sec]", 0, { copper: 350000, iron: 150000 }, () => {
+            // per second += X;
+            new CommsText("You have increased your pump speed by X per second.");
+        }),
+        new Upgrade(upgradeTables.pump, "🧹", "Vacuum Intake", "Greatly increases intake efficiency with all-new vacuum technology.<br>[+X fuel/sec]", 0, { copper: 2000000, iron: 900000 }, () => {
+            // per second += X;
+            new CommsText("You have increased your pump speed by X per second.");
+        }),
+        new Upgrade(upgradeTables.pump, "💫", "Molecular Compression", "A tank that uses molecular compression technology to increase its capacity.<br>[+Y pump capacity]", 0, { copper: 15000000, iron: 7500000 }, () => {
+            // capacity += Y;
+            new CommsText("You have increased your pump capacity by Y.");
+        }),
+        new Upgrade(upgradeTables.pump, "🔧", "Tinkering Microbots", "These little machines automatically fix any leaks or damages.<br>[+X fuel/sec]", 0, { copper: 100000000, iron: 40000000 }, () => {
+            // per second += X;
+            new CommsText("You have increased your pump speed by X per second.");
+        }),
+        new Upgrade(upgradeTables.pump, "🔬", "Nano-Filtration System", "Deals with dust and debris at the molecular level.<br>[+X fuel/sec]", 0, { copper: 800000000, iron: 250000000 }, () => {
+            // per second += X;
+            new CommsText("You have increased your pump speed by X per second.");
+        }),
+        new Upgrade(upgradeTables.pump, "🛸", "Hyperspace Storage", "Uses interdimensional technology to increase capacity beyond normal limitations.<br>[+Y pump capacity]", 0, { copper: 5000000000, iron: 2000000000 }, () => {
+            // capacity += Y;
+            new CommsText("You have increased your pump capacity by Y.");
+        }),
+        new Upgrade(upgradeTables.pump, "🌌", "Fluid Dynamics Manipulator", "This technology allows for unimaginable speeds.<br>[+X fuel/sec]", 0, { copper: 40000000000, iron: 15000000000 }, () => {
+            // per second += X;
+            new CommsText("You have increased your pump speed by X per second.");
+        }),
+        new Upgrade(upgradeTables.pump, "🔮", "Quantum Entangled Tubes", "Uses quantum entanglement to pump fuel faster than the speed of light.<br>[+X fuel/sec]", 0, { copper: 200000000000, iron: 5 }, () => {
+            // per second += X;
+            new CommsText("You have increased your pump speed by X per second.");
+        }),
+
         // Tool Upgrades
 
         new Upgrade(upgradeTables.tool, "🏓", "Reinforced Handle", "For added stability.<br>[+0.1 minerals/click]", 0, { lead: 10, iron: 5 }, () => {

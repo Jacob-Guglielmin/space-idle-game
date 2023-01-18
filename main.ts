@@ -399,7 +399,7 @@ class Upgrade {
                 } else {
                     needLineBreak = true;
                 }
-                costCell.innerHTML += resource + ": " + numFormat(this.costs[resource as keyof ResourceObj<number>]);
+                costCell.innerHTML += resource[0] + ":&nbsp;" + numFormat(this.costs[resource as keyof ResourceObj<number>]);
             }
         }
 

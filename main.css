@@ -9,6 +9,19 @@ body {
     height: 100vh;
 }
 
+.tooltip {
+    position: absolute;
+    visibility: hidden;
+    border: 2px solid white;
+    background-color: black;
+    border-radius: 10px;
+}
+.tooltip::after {
+    content: "";
+    position: absolute;
+    border-style: solid;
+}
+
 #bgImage {
     position: absolute;
     z-index: -10;
@@ -88,6 +101,84 @@ body {
     border-right: 2px solid white;
     border-bottom: 2px solid white;
     border-bottom-right-radius: 15px;
+}
+
+.tab {
+    display: grid;
+    grid-auto-columns: 1fr;
+    overflow: hidden;
+}
+.tab button {
+    line-height: 8vh;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    grid-row: 1;
+    background-color: transparent;
+    color: white;
+    border-bottom: 1px solid white;
+    border-left: 1px solid white;
+    height: 8vh;
+}
+.tab button:first-child {
+    border-left: none;
+}
+.tab button:hover {
+    background-color: #ffffff30;
+    color: white;
+}
+.tab button.active {
+    background-color: #ffffffdd;
+    color: black;
+}
+.tabcontent {
+    display: none;
+    padding: 5px;
+    border-top: none;
+    color: white;
+    max-height: 32vh;
+    box-sizing: border-box;
+    overflow: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.tabcontent::-webkit-scrollbar {
+    display: none;
+}
+
+.upgradeTable {
+    border-collapse: collapse;
+}
+.upgradeTable tr:not(:last-child) {
+    border-bottom: 1px solid white;
+}
+.upgradeTable tr:hover {
+    background-color: #ffffff30;
+}
+.upgradeTable td {
+    padding-top: 2vh;
+    padding-bottom: 2vh;
+}
+.upgradeTableIcon {
+    width: 10%;
+}
+.upgradeTableName {
+    width: 25%;
+    text-align: center;
+    font-weight: bold;
+    font-size: large;
+}
+.upgradeTableDesc {
+    width: 45%;
+    text-align: left;
+    font-size: x-small;
+}
+.upgradeTableCost,
+.upgradeTableOwned {
+    width: 10%;
+    text-align: center;
+    font-size: medium;
 }
 
 #comms {
@@ -182,6 +273,23 @@ body {
     text-align: center;
 }
 
+#planetDescTooltip {
+    left: -2px;
+    top: -115%;
+    width: 16vw;
+    height: 8vw;
+}
+#planetDescTooltip::after {
+    top: 100%;
+    left: calc(4vw + 2px);
+    margin-left: calc(-8vw * 0.08);
+    border-width: calc(8vw * 0.08);
+    border-color: white transparent transparent transparent;
+}
+#planetInfoContainer:hover #planetDescTooltip {
+    visibility: visible;
+}
+
 #shipContainer {
     position: absolute;
     right: 3vh;
@@ -196,6 +304,24 @@ body {
     animation: fuelAnim 5s linear infinite;
     background-size: 8vw calc(8vw * 1.084);
 }
+
+#shipTooltip {
+    right: -2px;
+    top: -115%;
+    width: 16vw;
+    height: 8vw;
+}
+#shipTooltip::after {
+    top: 100%;
+    right: calc(4vw + 2px);
+    margin-right: calc(-8vw * 0.08);
+    border-width: calc(8vw * 0.08);
+    border-color: white transparent transparent transparent;
+}
+#shipContainer:hover #shipTooltip {
+    visibility: visible;
+}
+
 #shipContainer::before {
     position: absolute;
     left: 50%;
@@ -222,82 +348,4 @@ body {
     to {
         background-position-x: 8vw;
     }
-}
-
-.tab {
-    display: grid;
-    grid-auto-columns: 1fr;
-    overflow: hidden;
-}
-.tab button {
-    line-height: 8vh;
-    float: left;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    grid-row: 1;
-    background-color: transparent;
-    color: white;
-    border-bottom: 1px solid white;
-    border-left: 1px solid white;
-    height: 8vh;
-}
-.tab button:first-child {
-    border-left: none;
-}
-.tab button:hover {
-    background-color: #ffffff30;
-    color: white;
-}
-.tab button.active {
-    background-color: #ffffffdd;
-    color: black;
-}
-.tabcontent {
-    display: none;
-    padding: 5px;
-    border-top: none;
-    color: white;
-    max-height: 32vh;
-    box-sizing: border-box;
-    overflow: scroll;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-.tabcontent::-webkit-scrollbar {
-    display: none;
-}
-
-.upgradeTable {
-    border-collapse: collapse;
-}
-.upgradeTable tr:not(:last-child) {
-    border-bottom: 1px solid white;
-}
-.upgradeTable tr:hover {
-    background-color: #ffffff30;
-}
-.upgradeTable td {
-    padding-top: 2vh;
-    padding-bottom: 2vh;
-}
-.upgradeTableIcon {
-    width: 10%;
-}
-.upgradeTableName {
-    width: 25%;
-    text-align: center;
-    font-weight: bold;
-    font-size: large;
-}
-.upgradeTableDesc {
-    width: 45%;
-    text-align: left;
-    font-size: x-small;
-}
-.upgradeTableCost,
-.upgradeTableOwned {
-    width: 10%;
-    text-align: center;
-    font-size: medium;
 }

@@ -275,9 +275,13 @@ body {
 
 #planetDescTooltip {
     left: -2px;
-    top: -115%;
-    width: 16vw;
-    height: 8vw;
+    bottom: 115%;
+    min-width: 8vw;
+    max-width: 16vw;
+    display: flex;
+    justify-content: center;
+    padding: 0.5vw;
+    box-sizing: border-box;
 }
 #planetDescTooltip::after {
     top: 100%;
@@ -307,9 +311,13 @@ body {
 
 #shipTooltip {
     right: -2px;
-    top: -115%;
-    width: 16vw;
-    height: 8vw;
+    bottom: 115%;
+    min-width: calc(8vw + 4px);
+    max-width: calc(16vw + 4px);
+    display: flex;
+    justify-content: center;
+    padding: 0.5vw;
+    box-sizing: border-box;
 }
 #shipTooltip::after {
     top: 100%;

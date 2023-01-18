@@ -16,7 +16,9 @@ const bgImage = document.getElementById("bgImage") as HTMLImageElement,
     miningTable = document.getElementById("miningTable") as HTMLTableElement,
     comms = document.getElementById("comms") as HTMLDivElement,
     planetName = document.getElementById("planetName") as HTMLSpanElement,
+    planetTooltip = document.getElementById("planetDescTooltip") as HTMLDivElement,
     shipContainer = document.getElementById("shipContainer") as HTMLDivElement,
+    shipTooltip = document.getElementById("shipTooltip") as HTMLDivElement,
     upgradeTables: { [key: string]: HTMLTableElement } = {
         ship: document.getElementById("shipUpgradeTable") as HTMLTableElement,
         pump: document.getElementById("pumpUpgradeTable") as HTMLTableElement,
@@ -167,6 +169,8 @@ class Game {
                 this.resources.fuel += this.fuelPs / this.fps;
             }
         }
+
+        this.currentPlanet.timeSpentSeconds += 1 / this.fps;
     }
 
     Render() {
@@ -190,8 +194,10 @@ class Game {
 
                 if (this.resources.fuel >= this.fuelRequirement) {
                     shipContainer.classList.add("completeFuel");
+                    shipTooltip.innerHTML = "Ready!";
                 } else {
                     shipContainer.classList.remove("completeFuel");
+                    shipTooltip.innerHTML = "Fuel:&nbsp;" + numFormat(this.resources.fuel) + "&nbsp;/&nbsp;" + numFormat(this.fuelRequirement);
                 }
             } else {
                 resourceElements.counts[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.resources[resource as keyof MineralObj<number>]);
@@ -239,6 +245,11 @@ class Game {
                 }
             }
         }
+
+        // ==============================
+        //        Planet Tooltip
+        // ==============================
+        planetTooltip.innerHTML = "Abundant&nbsp;Mineral:&nbsp;" + this.currentPlanet.abundantMineral[0].toUpperCase() + this.currentPlanet.abundantMineral.slice(1) + "<br>Time&nbsp;on&nbsp;Planet:&nbsp;" + new Date(this.currentPlanet.timeSpentSeconds * 1000).toISOString().substring(11, 19);
     }
 
     ChooseMineral(chances: MineralObj<number>): keyof MineralObj<number> {
@@ -358,10 +369,13 @@ class Upgrade {
 class Planet {
     name: string;
     lootTable: MineralObj<number>;
+    timeSpentSeconds: number;
+
+    abundantMineral: keyof MineralObj<number>;
 
     constructor();
-    constructor(name: string, lootTable: MineralObj<number>);
-    constructor(name?: string, lootTable?: MineralObj<number>) {
+    constructor(name: string, timeSpentSeconds: number, lootTable: MineralObj<number>);
+    constructor(name?: string, timeSpentSeconds?: number, lootTable?: MineralObj<number>) {
         if (name == undefined) {
             let start = "",
                 end = "";
@@ -386,6 +400,12 @@ class Planet {
             }
         } else {
             this.name = name;
+        }
+
+        if (timeSpentSeconds == undefined) {
+            this.timeSpentSeconds = 0;
+        } else {
+            this.timeSpentSeconds = timeSpentSeconds;
         }
 
         if (lootTable == undefined) {
@@ -419,6 +439,8 @@ class Planet {
         } else {
             this.lootTable = lootTable;
         }
+
+        this.abundantMineral = Object.keys(this.lootTable).reduce((a, b) => (this.lootTable[a as keyof MineralObj<number>] > this.lootTable[b as keyof MineralObj<number>] ? a : b)) as keyof MineralObj<number>;
     }
 }
 

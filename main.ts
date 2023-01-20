@@ -634,10 +634,11 @@ game.Start();
 
 function floatText(e: MouseEvent) {
     let floatText = document.createElement("p");
-    floatText.innerHTML = "+" + game.mineralsPerClick;
+    floatText.innerHTML = "+" + numFormat(game.mineralsPerClick);
     floatText.style.position = "absolute";
-    floatText.style.left = e.clientX - 10 + "px";
-    floatText.style.top = e.clientY - 25 + "px";
+    floatText.style.left = e.clientX + "px";
+    floatText.style.top = e.clientY + "px";
+
     floatText.style.color = "white";
     floatText.style.fontSize = "1.5vw";
     floatText.style.zIndex = "100";
@@ -645,7 +646,7 @@ function floatText(e: MouseEvent) {
     floatText.style.transition = "opacity 1s";
 
     let floatTextRotation = Math.floor(Math.random() * 20) - 10;
-    floatText.style.transform = "rotate(" + floatTextRotation + "deg)";
+    floatText.style.transform = "rotate(" + floatTextRotation + "deg) translate(-50%, -150%)";
     document.body.appendChild(floatText);
 
     setInterval(() => floatText.style.top = parseFloat(floatText.style.top) - 1.3 + "px", 10);

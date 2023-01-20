@@ -528,6 +528,7 @@ class Upgrade {
 
         for (let resource in this.costs) {
             game.resources[resource as keyof ResourceObj<number>] -= this.costs[resource as keyof ResourceObj<number>];
+            this.costs[resource as keyof ResourceObj<number>] *= 1.5;
         }
         this.owned++;
 

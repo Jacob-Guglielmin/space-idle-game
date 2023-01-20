@@ -427,7 +427,7 @@ class Game {
             for (let i = 0; i < 4; i++) {
                 this.miningGridMaterials[i] = [];
                 this.miningGridTimers[i] = [];
-                for (let j = 0; j < 4; j++) {
+                for (let j = 0; j < 5; j++) {
                     this.miningGridMaterials[i][j] = this.ChooseMineral(this.currentPlanet.lootTable);
                     this.miningGridTimers[i][j] = 0;
                 }

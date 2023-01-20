@@ -9,6 +9,8 @@ interface ResourceObj<Type> extends MineralObj<Type> {
     fuel: Type;
 }
 
+const localStorageKey = "idleGameSave";
+
 const bgImage = document.getElementById("bgImage") as HTMLImageElement,
     drillImage = document.getElementById("drillImage") as HTMLImageElement,
     pumpImage = document.getElementById("pumpImage") as HTMLImageElement,
@@ -52,18 +54,18 @@ class Game {
     readonly fps = 30;
 
     resources: ResourceObj<number> = {
-        iron: 0,
-        copper: 0,
-        aluminum: 0,
-        lead: 0,
-        titanium: 0,
-        fuel: 0
+        iron: -1,
+        copper: -1,
+        aluminum: -1,
+        lead: -1,
+        titanium: -1,
+        fuel: -1
     };
-    mineralsPerSecond: number = 0;
-    mineralsPerClick: number = 1;
-    fuelPs: number = 0;
+    mineralsPerSecond = -1;
+    mineralsPerClick = -1;
+    fuelPs = -1;
 
-    fuelRequirement = 200;
+    fuelRequirement = -1;
 
     bgRotation = 0;
 
@@ -77,7 +79,7 @@ class Game {
     commsBlinkShown = false;
     commsBlinkTimer = 15;
 
-    currentPlanet: Planet;
+    currentPlanet = new Planet("", -1, { iron: -1, copper: -1, aluminum: -1, lead: -1, titanium: -1 });
 
     upgrades: Upgrade[] = [
         // Pump Upgrades
@@ -190,31 +192,14 @@ class Game {
         })
     ];
 
-    constructor() {
-        // TODO set based on whether there is a save
-        let newSave = true;
-
-        if (newSave) {
-            this.currentPlanet = new Planet("Earth", 0, {
-                iron: 0.75,
-                copper: 0.0625,
-                lead: 0.0625,
-                aluminum: 0.0625,
-                titanium: 0.0625
-            });
-        } else {
-            this.currentPlanet = new Planet();
-        }
+    constructor(savedGame: string | null) {
+        this.Load(savedGame);
 
         for (let i = 0; i < 4; i++) {
             let thisRow = miningTable.insertRow();
             this.miningGrid[i] = [];
-            this.miningGridMaterials[i] = [];
-            this.miningGridTimers[i] = [];
             for (let j = 0; j < 5; j++) {
                 this.miningGrid[i][j] = thisRow.insertCell();
-                this.miningGridMaterials[i][j] = this.ChooseMineral(this.currentPlanet.lootTable);
-                this.miningGridTimers[i][j] = 0;
                 this.miningGrid[i][j].onclick = ((event: MouseEvent) => {
                     if (this.miningGridTimers[i][j] == 0) {
                         this.resources[this.miningGridMaterials[i][j]] += this.mineralsPerClick;
@@ -359,6 +344,95 @@ class Game {
         }
 
         return "iron";
+    }
+
+    Save() {
+        let saveObj = {
+            saveVersion: 0.1,
+
+            resources: this.resources,
+
+            mineralsPerSecond: this.mineralsPerSecond,
+            mineralsPerClick: this.mineralsPerClick,
+            fuelPs: this.fuelPs,
+
+            fuelRequirement: this.fuelRequirement,
+
+            currentPlanet: this.currentPlanet,
+
+            miningGridMaterials: this.miningGridMaterials,
+            miningGridTimers: this.miningGridTimers
+        };
+
+        localStorage.setItem(localStorageKey, JSON.stringify(saveObj));
+    }
+
+    Load(savedGame: string | null) {
+        let saveObj: {
+            [key: string]: any;
+        } | null = null;
+
+        if (savedGame != null) {
+            try {
+                let possiblyUnsafeSave = JSON.parse(savedGame);
+
+                if (typeof possiblyUnsafeSave == "object" && possiblyUnsafeSave != null && possiblyUnsafeSave.hasOwnProperty("saveVersion")) {
+                    // Safe to assume that this is a valid data structure for the save file
+                    saveObj = possiblyUnsafeSave;
+                }
+            } catch (e) {
+                // TODO: Handle error
+            }
+        }
+
+        if (saveObj != null) {
+            this.resources = saveObj.resources;
+
+            this.mineralsPerSecond = saveObj.mineralsPerSecond;
+            this.mineralsPerClick = saveObj.mineralsPerClick;
+            this.fuelPs = saveObj.fuelPs;
+
+            this.fuelRequirement = saveObj.fuelRequirement;
+
+            this.currentPlanet = new Planet(saveObj.currentPlanet.name, saveObj.currentPlanet.timeSpentSeconds, saveObj.currentPlanet.lootTable);
+
+            this.miningGridMaterials = saveObj.miningGridMaterials;
+            this.miningGridTimers = saveObj.miningGridTimers;
+        } else {
+            this.resources = {
+                iron: 0,
+                copper: 0,
+                aluminum: 0,
+                lead: 0,
+                titanium: 0,
+                fuel: 0
+            };
+
+            this.mineralsPerSecond = 0;
+            this.mineralsPerClick = 1;
+            this.fuelPs = 0;
+
+            this.fuelRequirement = 200;
+
+            this.currentPlanet = new Planet("Earth", 0, {
+                iron: 0.75,
+                copper: 0.0625,
+                lead: 0.0625,
+                aluminum: 0.0625,
+                titanium: 0.0625
+            });
+
+            this.miningGridMaterials = [];
+            this.miningGridTimers = [];
+            for (let i = 0; i < 4; i++) {
+                this.miningGridMaterials[i] = [];
+                this.miningGridTimers[i] = [];
+                for (let j = 0; j < 4; j++) {
+                    this.miningGridMaterials[i][j] = this.ChooseMineral(this.currentPlanet.lootTable);
+                    this.miningGridTimers[i][j] = 0;
+                }
+            }
+        }
     }
 
     Loop() {
@@ -628,7 +702,7 @@ function handleResize() {
 window.addEventListener("resize", handleResize);
 handleResize();
 
-const game = new Game();
+const game = new Game(localStorage.getItem(localStorageKey));
 
 game.Start();
 
@@ -649,7 +723,7 @@ function floatText(e: MouseEvent) {
     floatText.style.transform = "rotate(" + floatTextRotation + "deg) translate(-50%, -150%)";
     document.body.appendChild(floatText);
 
-    setInterval(() => floatText.style.top = parseFloat(floatText.style.top) - 1.3 + "px", 10);
+    setInterval(() => (floatText.style.top = parseFloat(floatText.style.top) - 1.3 + "px"), 10);
 
     setTimeout(() => {
         floatText.style.opacity = "0";
@@ -658,4 +732,4 @@ function floatText(e: MouseEvent) {
 
     let mineSound = new Audio("Mining Sounds/mineSound" + Math.floor(Math.random() * 8 + 1) + ".mp3");
     mineSound.play();
-}   
+}

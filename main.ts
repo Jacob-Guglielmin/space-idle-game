@@ -348,7 +348,7 @@ class Game {
 
     Save() {
         let saveObj = {
-            saveVersion: 0.1,
+            saveVersion: "0.1",
 
             resources: this.resources,
 
@@ -460,6 +460,7 @@ class Upgrade {
     name: string;
     desc: string;
     owned: number = 0;
+    ownedElement: HTMLTableCellElement | null = null;
     costs: ResourceObj<number> = {
         iron: 0,
         copper: 0,
@@ -488,19 +489,20 @@ class Upgrade {
         let iconCell = upgradeRow.insertCell(),
             nameCell = upgradeRow.insertCell(),
             descCell = upgradeRow.insertCell(),
-            costCell = upgradeRow.insertCell(),
-            ownedCell = upgradeRow.insertCell();
+            costCell = upgradeRow.insertCell();
+
+        this.ownedElement = upgradeRow.insertCell();
 
         iconCell.classList.add("upgradeTableIcon");
         nameCell.classList.add("upgradeTableName");
         descCell.classList.add("upgradeTableDesc");
         costCell.classList.add("upgradeTableCost");
-        ownedCell.classList.add("upgradeTableOwned");
+        this.ownedElement.classList.add("upgradeTableOwned");
 
         iconCell.innerHTML = this.icon;
         nameCell.innerHTML = this.name;
         descCell.innerHTML = this.desc;
-        ownedCell.innerHTML = "x" + this.owned;
+        this.ownedElement.innerHTML = "x" + this.owned;
 
         let needLineBreak = false;
         for (let resource in this.costs) {
@@ -528,6 +530,11 @@ class Upgrade {
             game.resources[resource as keyof ResourceObj<number>] -= this.costs[resource as keyof ResourceObj<number>];
         }
         this.owned++;
+
+        if (this.ownedElement != null) {
+            this.ownedElement.innerHTML = "x" + this.owned;
+        }
+
         this.effect();
     }
 }

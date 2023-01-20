@@ -59,7 +59,8 @@ class Game {
         titanium: 0,
         fuel: 0
     };
-    mineralsPs: number = 0;
+    mineralsPerSecond: number = 0;
+    mineralsPerClick: number = 1;
     fuelPs: number = 0;
 
     fuelRequirement = 200;
@@ -67,6 +68,8 @@ class Game {
     bgRotation = 0;
 
     miningGrid: HTMLTableCellElement[][] = [];
+    miningGridMaterials: (keyof MineralObj<number>)[][] = [];
+    miningGridTimers: number[][] = [];
 
     commsTextElements: HTMLParagraphElement[] = [];
     queuedCommsText: CommsText[] = [];
@@ -77,10 +80,6 @@ class Game {
     currentPlanet: Planet;
 
     upgrades: Upgrade[] = [
-        // Ship Upgrades
-
-        // Pump Upgrades
-
         // Pump Upgrades
 
         new Upgrade(upgradeTables.pump, "🚀", "High-Pressure Nozzle", "A more powerful and efficient pumping method.<br>[+X fuel/sec]", 0, { copper: 15, iron: 5 }, () => {
@@ -138,68 +137,91 @@ class Game {
 
         // Tool Upgrades
 
-        new Upgrade(upgradeTables.tool, "🏓", "Reinforced Handle", "For added stability.<br>[+0.1 minerals/click]", 0, { lead: 10, iron: 5 }, () => {
-            // per click += 0.1;
-            new CommsText("You have increased your mining power by 0.1 per click.");
+        new Upgrade(upgradeTables.tool, "🏓", "Reinforced Handle", "For added stability.<br>[+1 minerals/click]", 0, { lead: 10, iron: 5 }, () => {
+            this.mineralsPerClick += 1;
+            new CommsText("You have increased your mining power by 1 per click.");
         }),
         new Upgrade(upgradeTables.tool, "🧥", "Lead Coating", "A thin layer to shield some scratch damage.<br>[+3 minerals/click]", 0, { lead: 500, iron: 200 }, () => {
-            // per click += 3;
+            this.mineralsPerClick += 3;
             new CommsText("You have increased your mining power by 3 per click.");
         }),
         new Upgrade(upgradeTables.tool, "🏌️", "Stronger Strikes", "You gain a sense of power.<br>[+20 minerals/click]", 0, { lead: 5000, iron: 2500 }, () => {
-            // per click += 20;
+            this.mineralsPerClick += 20;
             new CommsText("You have increased your mining power by 20 per click.");
         }),
         new Upgrade(upgradeTables.tool, "🧲", "Magnetic Edge", "You seem to be losing track of less minerals now.<br>[+100 minerals/click]", 0, { lead: 35000, iron: 20000 }, () => {
-            // per click += 100;
+            this.mineralsPerClick += 100;
             new CommsText("You have increased your mining power by 100 per click.");
         }),
         new Upgrade(upgradeTables.tool, "⚡", "Laser Sight", "A built-in laser sight for improved precision.<br>[+600 minerals/click]", 0, { lead: 550000, iron: 250000 }, () => {
-            // per click += 600;
+            this.mineralsPerClick += 600;
             new CommsText("You have increased your mining power by 600 per click.");
         }),
         new Upgrade(upgradeTables.tool, "💻", "Magic Chip", "A smart microprocessor that tracks tool usage and suggests maintenance.<br>[+2000 minerals/click]", 0, { lead: 10000000, iron: 4000000 }, () => {
-            // per click += 2000;
+            this.mineralsPerClick += 2000;
             new CommsText("You have increased your mining power by 2000 per click.");
         }),
 
         // Drill Upgrades
 
         new Upgrade(upgradeTables.drill, "🔋", "Lithium Batteries", "Oh, this thing turns on now?<br>[+1 minerals/sec]", 0, { aluminum: 100, iron: 20 }, () => {
-            this.mineralsPs += 1;
+            this.mineralsPerSecond += 1;
             new CommsText("You have increased your mining rate by 1 per second.");
         }),
         new Upgrade(upgradeTables.drill, "🌀", "Faster Spinning", "A bit of added efficiency.<br>[+10 minerals/sec]", 0, { aluminum: 2000, iron: 800 }, () => {
-            this.mineralsPs += 10;
+            this.mineralsPerSecond += 10;
             new CommsText("You have increased your mining rate by 10 per second.");
         }),
         new Upgrade(upgradeTables.drill, "🗡️", "Sharper Tip", "Should make digging through tough rocks easier.<br>[+30 minerals/sec]", 0, { aluminum: 7500, iron: 3000 }, () => {
-            this.mineralsPs += 30;
+            this.mineralsPerSecond += 30;
             new CommsText("You have increased your mining rate by 50 per second.");
         }),
         new Upgrade(upgradeTables.drill, "🌡", "Thermal Dynamics", "This cooling system allows the drill to safely run at higher powers.<br>[+95 minerals/sec]", 0, { aluminum: 40000, iron: 17500 }, () => {
-            this.mineralsPs += 95;
+            this.mineralsPerSecond += 95;
             new CommsText("You have increased your mining rate by 95 per second.");
         }),
         new Upgrade(upgradeTables.drill, "📡", "Pressure Sensors", "Automatically detects and adjusts for different rock densities.<br>[+250 minerals/sec]", 0, { aluminum: 750000, iron: 400000 }, () => {
-            this.mineralsPs += 250;
+            this.mineralsPerSecond += 250;
             new CommsText("You have increased your mining rate by 250 per second.");
         }),
         new Upgrade(upgradeTables.drill, "🌪️", "High-Torque Motor", "A spin of unprecedented speeds.<br>[+800 minerals/sec]", 0, { aluminum: 6000000, iron: 2000000 }, () => {
-            this.mineralsPs += 800;
+            this.mineralsPerSecond += 800;
             new CommsText("You have increased your mining rate by 800 per second.");
         })
     ];
 
     constructor() {
-        this.currentPlanet = new Planet();
+        // TODO set based on whether there is a save
+        let newSave = true;
+
+        if (newSave) {
+            this.currentPlanet = new Planet("Earth", 0, {
+                iron: 0.75,
+                copper: 0.0625,
+                lead: 0.0625,
+                aluminum: 0.0625,
+                titanium: 0.0625
+            });
+        } else {
+            this.currentPlanet = new Planet();
+        }
 
         for (let i = 0; i < 4; i++) {
             let thisRow = miningTable.insertRow();
             this.miningGrid[i] = [];
+            this.miningGridMaterials[i] = [];
+            this.miningGridTimers[i] = [];
             for (let j = 0; j < 5; j++) {
                 this.miningGrid[i][j] = thisRow.insertCell();
-                this.miningGrid[i][j].onclick = null;
+                this.miningGridMaterials[i][j] = this.ChooseMineral(this.currentPlanet.lootTable);
+                this.miningGridTimers[i][j] = 0;
+                this.miningGrid[i][j].onclick = (() => {
+                    if (this.miningGridTimers[i][j] == 0) {
+                        this.resources[this.miningGridMaterials[i][j]] += this.mineralsPerClick;
+                        this.miningGridMaterials[i][j] = this.ChooseMineral(this.currentPlanet.lootTable);
+                        this.miningGridTimers[i][j] = 3;
+                    }
+                }).bind(this);
             }
         }
 
@@ -219,9 +241,17 @@ class Game {
     Logic() {
         for (let resource in this.resources) {
             if (resource != "fuel") {
-                this.resources[resource as keyof ResourceObj<number>] += (this.currentPlanet.lootTable[resource as keyof MineralObj<number>] * this.mineralsPs) / this.fps;
+                this.resources[resource as keyof ResourceObj<number>] += (this.currentPlanet.lootTable[resource as keyof MineralObj<number>] * this.mineralsPerSecond) / this.fps;
             } else {
                 this.resources.fuel += this.fuelPs / this.fps;
+            }
+        }
+
+        for (let row = 0; row < this.miningGridTimers.length; row++) {
+            for (let col = 0; col < this.miningGridTimers[row].length; col++) {
+                if (this.miningGridTimers[row][col] > 0) {
+                    this.miningGridTimers[row][col] = Math.max(0, this.miningGridTimers[row][col] - 1 / this.fps);
+                }
             }
         }
 
@@ -256,7 +286,16 @@ class Game {
                 }
             } else {
                 resourceElements.counts[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.resources[resource as keyof MineralObj<number>]);
-                resourceElements.perSecond[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.currentPlanet.lootTable[resource as keyof MineralObj<number>] * this.mineralsPs) + "/s";
+                resourceElements.perSecond[resource as keyof MineralObj<HTMLParagraphElement>].innerText = numFormat(this.currentPlanet.lootTable[resource as keyof MineralObj<number>] * this.mineralsPerSecond) + "/s";
+            }
+        }
+
+        // ==============================
+        //          Mining Grid
+        // ==============================
+        for (let row = 0; row < this.miningGridTimers.length; row++) {
+            for (let col = 0; col < this.miningGridTimers[row].length; col++) {
+                this.miningGrid[row][col].innerHTML = this.miningGridTimers[row][col] == 0 ? this.miningGridMaterials[row][col].substring(0, 2).toUpperCase() : this.miningGridTimers[row][col].toFixed(1);
             }
         }
 

@@ -81,6 +81,8 @@ body {
     width: 7vh;
     height: 7vh;
     border: 5px solid white;
+    text-align: center;
+    color: blue;
 }
 
 #topContainer {

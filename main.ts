@@ -263,9 +263,6 @@ class Game {
         //          Background
         // ==============================
 
-        bgImage.style.width = Math.sqrt((window.innerWidth / 2) ** 2 + window.innerHeight ** 2) * 2 + "px";
-        bgImage.style.height = Math.sqrt((window.innerWidth / 2) ** 2 + window.innerHeight ** 2) * 2 + "px";
-
         this.bgRotation += 0.015;
         bgImage.style.transform = "translate(-50%, -50%) rotate(" + this.bgRotation + "deg)";
 
@@ -621,6 +618,14 @@ function selectTab(event: PointerEvent, tabId: string) {
     document.getElementById(tabId)!.style.display = "block";
     (event.currentTarget! as HTMLElement).classList.add("active");
 }
+
+function handleResize() {
+    bgImage.style.width = Math.sqrt((window.innerWidth / 2) ** 2 + (window.innerHeight * 1.3) ** 2) * 2 + "px";
+    bgImage.style.height = Math.sqrt((window.innerWidth / 2) ** 2 + (window.innerHeight * 1.3) ** 2) * 2 + "px";
+}
+
+window.addEventListener("resize", handleResize);
+handleResize();
 
 const game = new Game();
 

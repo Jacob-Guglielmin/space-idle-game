@@ -215,11 +215,12 @@ class Game {
                 this.miningGrid[i][j] = thisRow.insertCell();
                 this.miningGridMaterials[i][j] = this.ChooseMineral(this.currentPlanet.lootTable);
                 this.miningGridTimers[i][j] = 0;
-                this.miningGrid[i][j].onclick = (() => {
+                this.miningGrid[i][j].onclick = ((event: MouseEvent) => {
                     if (this.miningGridTimers[i][j] == 0) {
                         this.resources[this.miningGridMaterials[i][j]] += this.mineralsPerClick;
                         this.miningGridMaterials[i][j] = this.ChooseMineral(this.currentPlanet.lootTable);
                         this.miningGridTimers[i][j] = 3;
+                        floatText(event);
                     }
                 }).bind(this);
             }
@@ -630,3 +631,30 @@ handleResize();
 const game = new Game();
 
 game.Start();
+
+function floatText(e: MouseEvent) {
+    let floatText = document.createElement("p");
+    floatText.innerHTML = "+" + game.mineralsPerClick;
+    floatText.style.position = "absolute";
+    floatText.style.left = e.clientX - 10 + "px";
+    floatText.style.top = e.clientY - 25 + "px";
+    floatText.style.color = "white";
+    floatText.style.fontSize = "1.5vw";
+    floatText.style.zIndex = "100";
+    floatText.style.opacity = "1";
+    floatText.style.transition = "opacity 1s";
+
+    let floatTextRotation = Math.floor(Math.random() * 20) - 10;
+    floatText.style.transform = "rotate(" + floatTextRotation + "deg)";
+    document.body.appendChild(floatText);
+
+    setInterval(() => floatText.style.top = parseFloat(floatText.style.top) - 1.3 + "px", 10);
+
+    setTimeout(() => {
+        floatText.style.opacity = "0";
+        setTimeout(() => floatText.remove(), 1000);
+    }, 100);
+
+    let mineSound = new Audio("Mining Sounds/mineSound" + Math.floor(Math.random() * 8 + 1) + ".mp3");
+    mineSound.play();
+}   
